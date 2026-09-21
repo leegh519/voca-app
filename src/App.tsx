@@ -485,7 +485,20 @@ function Study({
             )}
             <small>눌러서 {flipped ? "단어" : "뜻"} 보기 ↻</small>
           </button>
-          <div className={`flashcard mobile-card ${flipped ? "flipped" : ""}`}>
+          <div
+            className={`flashcard mobile-card ${flipped ? "flipped" : ""}`}
+            role="button"
+            tabIndex={0}
+            aria-label={flipped ? "카드 뒤집기: 영단어 보기" : "카드 뒤집기: 뜻 보기"}
+            onClick={() => setFlipped((value) => !value)}
+            onKeyDown={(event) => {
+              if (event.target !== event.currentTarget) return;
+              if (event.key === "Enter" || event.key === " ") {
+                event.preventDefault();
+                setFlipped((value) => !value);
+              }
+            }}
+          >
             <span className="eyebrow">{flipped ? "MEANING" : "WORD"}</span>
             <PagedText
               text={
@@ -501,12 +514,7 @@ function Study({
                   : current.word
               }
             />
-            <button
-              className="flip-control"
-              onClick={() => setFlipped(!flipped)}
-            >
-              {flipped ? "영단어 보기 ↻" : "뜻 보기 ↻"}
-            </button>
+            <small className="flip-hint">카드 어디든 눌러 뒤집기 ↻</small>
           </div>
           <div className="card-actions">
             <button

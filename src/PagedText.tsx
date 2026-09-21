@@ -81,7 +81,11 @@ export default function PagedText({
       </div>
       <div ref={probe} className="page-probe" aria-hidden="true" />
       {pages.length > 1 && (
-        <div className="text-pages" aria-label="긴 내용 넘기기">
+        <div
+          className="text-pages"
+          aria-label="긴 내용 넘기기"
+          onClick={(event) => event.stopPropagation()}
+        >
           <button
             disabled={page === 0}
             onClick={() => setPage(page - 1)}
