@@ -7,6 +7,15 @@
       "after": " during transportation.",
       "isCorrect": true,
       "explanation": "be p.p.는 현재 p.p.된 상태를 나타내고, have been p.p.는 과거에 p.p.된 상태를 나타냅니다."
+    },
+    {
+      "id": "grammar-in-case-present-for-future",
+      "before": "I will make sure to save the document in case the system ",
+      "underlined": "crashed",
+      "after": " later.",
+      "isCorrect": false,
+      "correction": "crashes",
+      "explanation": "in case 절에서는 미래의 일을 말할 때도 현재시제를 사용합니다. 따라서 crashed가 아니라 crashes를 써야 합니다."
     }
   ]
 }
