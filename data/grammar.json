@@ -16,6 +16,15 @@
       "isCorrect": false,
       "correction": "crashes",
       "explanation": "in case 절에서는 미래의 일을 말할 때도 현재시제를 사용합니다. 따라서 crashed가 아니라 crashes를 써야 합니다."
+    },
+    {
+      "id": "grammar-allow-to-infinitive",
+      "before": "The personal computer allows users ",
+      "underlined": "handling",
+      "after": " animated images.",
+      "isCorrect": false,
+      "correction": "to handle",
+      "explanation": "allow는 5형식에서 목적어 뒤에 to부정사를 씁니다. 따라서 users handling이 아니라 users to handle이 맞습니다."
     }
   ]
 }
