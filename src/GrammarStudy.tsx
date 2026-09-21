@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { loadGrammarSession, saveGrammarSession } from "./studySession";
 import grammar from "../data/grammar.json";
 import { gradeGrammar, grammarSentence, validateGrammar } from "./grammar";
 import type { GrammarQuestion } from "./grammar";
@@ -9,11 +10,23 @@ validateGrammar(grammar);
 const questions: GrammarQuestion[] = grammar.questions;
 
 export default function GrammarStudy() {
-  const [queue, setQueue] = useState(() => shuffle(questions));
-  const [index, setIndex] = useState(0);
-  const [selected, setSelected] = useState<boolean | null>(null);
-  const [score, setScore] = useState(0);
-  const [missed, setMissed] = useState<GrammarQuestion[]>([]);
+  const [initial] = useState(() => loadGrammarSession(questions));
+  const [queue, setQueue] = useState(
+    () => initial?.queue ?? shuffle(questions),
+  );
+  const [index, setIndex] = useState(initial?.index ?? 0);
+  const [selected, setSelected] = useState<boolean | null>(
+    initial?.selected ?? null,
+  );
+  const [score, setScore] = useState(initial?.score ?? 0);
+  const [missed, setMissed] = useState<GrammarQuestion[]>(
+    initial?.missed ?? [],
+  );
+  useEffect(
+    () =>
+      saveGrammarSession(questions, { queue, index, selected, score, missed }),
+    [queue, index, selected, score, missed],
+  );
   const current = queue[index];
   function restart(items: GrammarQuestion[]) {
     setQueue(shuffle(items));

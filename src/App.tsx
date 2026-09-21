@@ -1,6 +1,14 @@
 import PagedText from "./PagedText";
 import GrammarStudy from "./GrammarStudy";
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import {
+  loadNavigation,
+  loadWordSession,
+  saveNavigation,
+  saveWordSession,
+  wordSessionKey,
+} from "./studySession";
+import type { Mode, Section } from "./studySession";
 import textbook from "../data/textbook.json";
 import extra from "../data/extra.json";
 import grammar from "../data/grammar.json";
@@ -17,8 +25,6 @@ import type { Progress, Scope, StudyWord } from "./vocabulary";
 validateData(textbook, extra);
 const allWords = collectWords(textbook, extra);
 const STORAGE_KEY = "voca-app.progress.v1";
-type Mode = "cards" | "meaning" | "example" | "list";
-type Section = Scope | "grammar";
 const modes: { id: Mode; label: string; icon: string }[] = [
   { id: "cards", label: "플래시카드", icon: "▱" },
   { id: "meaning", label: "단어 → 뜻", icon: "✓" },
@@ -41,15 +47,17 @@ function readSaved() {
 }
 
 export default function App() {
-  const [section, setSection] = useState<Section>("textbook");
+  const [navigation] = useState(loadNavigation);
+  const [section, setSection] = useState<Section>(navigation.section);
   const isGrammar = section === "grammar";
   const scope: Scope = isGrammar ? "all" : section;
-  const [day, setDay] = useState(1);
-  const [mode, setMode] = useState<Mode>("cards");
+  const [day, setDay] = useState(navigation.day);
+  const [mode, setMode] = useState<Mode>(navigation.mode);
+  useEffect(() => saveNavigation({ section, day, mode }), [section, day, mode]);
   const [saved] = useState(readSaved);
   const [progress, setProgress] = useState<Progress>(saved.progress);
   const [warning, setWarning] = useState(saved.warning);
-  const words = selectWords(allWords, scope, day);
+  const words = useMemo(() => selectWords(allWords, scope, day), [scope, day]);
   const label = isGrammar
     ? "문법 O/X"
     : scope === "textbook"
@@ -278,6 +286,8 @@ export default function App() {
               <Study
                 key={`${scope}-${day}-${mode}`}
                 words={words}
+                section={scope}
+                day={day}
                 mode={mode}
                 progress={progress}
                 record={record}
@@ -297,34 +307,73 @@ export default function App() {
 }
 function Study({
   words,
+  section,
+  day,
   mode,
   progress,
   record,
 }: {
   words: StudyWord[];
+  section: Scope;
+  day: number;
   mode: Mode;
   progress: Progress;
   record: (word: StudyWord, correct: boolean) => void;
 }) {
-  const [queue, setQueue] = useState(() =>
-    mode === "cards" || mode === "list"
-      ? words
-      : shuffle(
-          mode === "example"
-            ? words.filter((word) => word.example?.trim())
-            : words,
-        ),
+  const [initial] = useState(() =>
+    loadWordSession(wordSessionKey(section, day, mode), words, mode),
   );
-  const [index, setIndex] = useState(0);
-  const [flipped, setFlipped] = useState(false);
-  const [answer, setAnswer] = useState<boolean | null>(null);
-  const [selected, setSelected] = useState<string | null>(null);
-  const [missed, setMissed] = useState<StudyWord[]>([]);
-  const [score, setScore] = useState(0);
-  const [choices, setChoices] = useState(() =>
-    queue[0] ? meaningChoices(queue[0], words) : [],
+  const [queue, setQueue] = useState(
+    () =>
+      initial?.queue ??
+      (mode === "cards" || mode === "list"
+        ? words
+        : shuffle(
+            mode === "example"
+              ? words.filter((word) => word.example?.trim())
+              : words,
+          )),
   );
-  const [search, setSearch] = useState("");
+  const [index, setIndex] = useState(initial?.index ?? 0);
+  const [flipped, setFlipped] = useState(initial?.flipped ?? false);
+  const [answer, setAnswer] = useState<boolean | null>(initial?.answer ?? null);
+  const [selected, setSelected] = useState<string | null>(
+    initial?.selected ?? null,
+  );
+  const [missed, setMissed] = useState<StudyWord[]>(initial?.missed ?? []);
+  const [score, setScore] = useState(initial?.score ?? 0);
+  const [choices, setChoices] = useState(
+    () => initial?.choices ?? (queue[0] ? meaningChoices(queue[0], words) : []),
+  );
+  const [search, setSearch] = useState(initial?.search ?? "");
+  const sessionKey = wordSessionKey(section, day, mode);
+  useEffect(
+    () =>
+      saveWordSession(sessionKey, words, {
+        queue,
+        index,
+        flipped,
+        answer,
+        selected,
+        missed,
+        score,
+        choices,
+        search,
+      }),
+    [
+      sessionKey,
+      words,
+      queue,
+      index,
+      flipped,
+      answer,
+      selected,
+      missed,
+      score,
+      choices,
+      search,
+    ],
+  );
   const current = queue[index];
   function restart(items: StudyWord[]) {
     const next = shuffle(items);
@@ -489,7 +538,9 @@ function Study({
             className={`flashcard mobile-card ${flipped ? "flipped" : ""}`}
             role="button"
             tabIndex={0}
-            aria-label={flipped ? "카드 뒤집기: 영단어 보기" : "카드 뒤집기: 뜻 보기"}
+            aria-label={
+              flipped ? "카드 뒤집기: 영단어 보기" : "카드 뒤집기: 뜻 보기"
+            }
             onClick={() => setFlipped((value) => !value)}
             onKeyDown={(event) => {
               if (event.target !== event.currentTarget) return;
