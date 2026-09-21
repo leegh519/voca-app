@@ -15,6 +15,7 @@ export type WordSession = {
   score: number;
   choices: string[];
   search: string;
+  knownIds: string[];
 };
 export type GrammarSession = {
   queue: GrammarQuestion[];
@@ -138,10 +139,17 @@ export function loadWordSession(
     Number(saved.score) > queue.length ||
     !Array.isArray(saved.choices) ||
     !saved.choices.every((choice) => typeof choice === "string") ||
-    typeof saved.search !== "string"
+    typeof saved.search !== "string" ||
+    (saved.knownIds !== undefined &&
+      (!Array.isArray(saved.knownIds) ||
+        !saved.knownIds.every((id) => typeof id === "string") ||
+        new Set(saved.knownIds).size !== saved.knownIds.length ||
+        !saved.knownIds.every((id) =>
+          source.some((word) => word.id === id),
+        )))
   )
     return null;
-  if (mode === "cards" && queue.length !== source.length) return null;
+  if (mode === "cards" && queue.some((word) => !source.includes(word))) return null;
   if (mode === "list" && !sameIds(saved.queueIds, source)) return null;
   if (mode === "example" && queue.some((word) => !word.example?.trim()))
     return null;
@@ -155,6 +163,7 @@ export function loadWordSession(
     score: Number(saved.score),
     choices: saved.choices,
     search: saved.search,
+    knownIds: Array.isArray(saved.knownIds) ? saved.knownIds : [],
   };
 }
 export function saveWordSession(
@@ -174,6 +183,7 @@ export function saveWordSession(
     score: session.score,
     choices: session.choices,
     search: session.search,
+    knownIds: session.knownIds,
   });
 }
 export function loadGrammarSession(

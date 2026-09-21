@@ -358,6 +358,12 @@ strong {
 .card-actions button {
   font-size: 12px;
 }
+.known-word.marked {
+  background: #e8ebf2;
+  border-color: #8d97b3;
+  color: var(--brand);
+  font-weight: 700;
+}
 .primary {
   background: var(--brand);
   color: white;
@@ -877,6 +883,13 @@ select {
     flex: 1;
     min-height: 44px;
     padding: 7px;
+  }
+  .card-actions {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  .card-actions .known-word {
+    grid-column: 1 / -1;
   }
   .question {
     flex: 0 0 50%;

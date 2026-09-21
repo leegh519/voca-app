@@ -346,6 +346,8 @@ function Study({
     () => initial?.choices ?? (queue[0] ? meaningChoices(queue[0], words) : []),
   );
   const [search, setSearch] = useState(initial?.search ?? "");
+  const [knownIds, setKnownIds] = useState<string[]>(initial?.knownIds ?? []);
+  const knownWords = new Set(knownIds);
   const sessionKey = wordSessionKey(section, day, mode);
   useEffect(
     () =>
@@ -359,6 +361,7 @@ function Study({
         score,
         choices,
         search,
+        knownIds,
       }),
     [
       sessionKey,
@@ -372,6 +375,7 @@ function Study({
       score,
       choices,
       search,
+      knownIds,
     ],
   );
   const current = queue[index];
@@ -400,6 +404,22 @@ function Study({
     setAnswer(null);
     setSelected(null);
     setChoices(queue[index + 1] ? meaningChoices(queue[index + 1], words) : []);
+  }
+  function toggleKnown() {
+    setKnownIds((previous) =>
+      previous.includes(current.id)
+        ? previous.filter((id) => id !== current.id)
+        : [...previous, current.id],
+    );
+  }
+  function nextCardRound() {
+    const remaining = queue.filter((word) => !knownWords.has(word.id));
+    setQueue(remaining);
+    setKnownIds((previous) =>
+      previous.filter((id) => remaining.some((word) => word.id === id)),
+    );
+    setIndex(0);
+    setFlipped(false);
   }
   if (mode === "list") {
     const filtered = words.filter((word) =>
@@ -450,6 +470,25 @@ function Study({
       </div>
     );
   }
+  if (!queue.length && mode === "cards")
+    return (
+      <div className="result">
+        <span className="eyebrow">FLASHCARDS · COMPLETE</span>
+        <h3>이번 범위의 단어를 모두 아는 단어로 표시했어요.</h3>
+        <p className="muted">표시를 초기화하면 전체 단어를 다시 볼 수 있어요.</p>
+        <div className="actions">
+          <button
+            className="primary"
+            onClick={() => {
+              setKnownIds([]);
+              restart(words);
+            }}
+          >
+            아는 단어 표시 초기화
+          </button>
+        </div>
+      </div>
+    );
   if (!queue.length)
     return (
       <div className="empty">
@@ -498,7 +537,7 @@ function Study({
       <div className="session-heading">
         <p>
           {mode === "cards"
-            ? "먼저 뜻을 떠올린 뒤 카드를 뒤집어 보세요."
+            ? `먼저 뜻을 떠올린 뒤 카드를 뒤집어 보세요. 아는 단어 ${knownIds.length}개`
             : mode === "meaning"
               ? choices.length > 1
                 ? "이 단어에 맞는 뜻을 선택하세요."
@@ -569,6 +608,15 @@ function Study({
           </div>
           <div className="card-actions">
             <button
+              className={
+                knownWords.has(current.id) ? "known-word marked" : "known-word"
+              }
+              aria-pressed={knownWords.has(current.id)}
+              onClick={toggleKnown}
+            >
+              {knownWords.has(current.id) ? "아는 단어 ✓" : "아는 단어"}
+            </button>
+            <button
               disabled={index === 0}
               onClick={() => {
                 setIndex(index - 1);
@@ -581,11 +629,18 @@ function Study({
             <button
               className="primary"
               onClick={() => {
-                setIndex((index + 1) % queue.length);
-                setFlipped(false);
+                if (index === queue.length - 1) nextCardRound();
+                else {
+                  setIndex(index + 1);
+                  setFlipped(false);
+                }
               }}
             >
-              {index === queue.length - 1 ? "처음으로 ↻" : "다음 →"}
+              {index === queue.length - 1
+                ? knownIds.length
+                  ? "아는 단어 빼고"
+                  : "처음으로 ↻"
+                : "다음 →"}
             </button>
           </div>
         </>

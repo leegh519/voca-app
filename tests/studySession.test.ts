@@ -80,6 +80,7 @@ test("단어 카드와 퀴즈 위치, 뒤집기, 정답 화면, 오답 목록을
     score: 1,
     choices: ["책", "사과"],
     search: "app",
+    knownIds: [],
   });
   const restored = loadWordSession(key, words, "meaning");
   assert.deepEqual(
@@ -118,12 +119,29 @@ test("단어 카드와 퀴즈 위치, 뒤집기, 정답 화면, 오답 목록을
     score: 0,
     choices: [],
     search: "",
+    knownIds: ["day01-b"],
   });
   assert.deepEqual(
     loadWordSession(cardKey, words, "cards")?.queue.map((word) => word.id),
     ["day01-b", "day01-a"],
   );
   assert.equal(loadWordSession(cardKey, words, "cards")?.flipped, true);
+  saveWordSession(cardKey, words, {
+    queue: [words[0]],
+    index: 0,
+    flipped: false,
+    answer: null,
+    selected: null,
+    missed: [],
+    score: 0,
+    choices: [],
+    search: "",
+    knownIds: [],
+  });
+  assert.deepEqual(
+    loadWordSession(cardKey, words, "cards")?.queue.map((word) => word.id),
+    ["day01-a"],
+  );
 });
 test("문법 문제 순서, 응답과 점수를 복원하고 바뀐 문제는 재시작한다", () => {
   values.clear();
