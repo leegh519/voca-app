@@ -19,6 +19,11 @@ button,
 input {
   font: inherit;
 }
+button,
+select,
+[role="button"] {
+  -webkit-tap-highlight-color: transparent;
+}
 button {
   cursor: pointer;
   color: inherit;
@@ -30,9 +35,11 @@ button {
     background 0.15s,
     border-color 0.15s;
 }
-button:hover:not(:disabled) {
-  background: #e8ebf2;
-  border-color: #8d97b3;
+@media (hover: hover) and (pointer: fine) {
+  button:hover:not(:disabled) {
+    background: #e8ebf2;
+    border-color: #8d97b3;
+  }
 }
 button:disabled {
   cursor: default;
@@ -142,8 +149,10 @@ strong {
 .scope.active span {
   color: #c3cbdf;
 }
-.scope.active:hover {
-  background: #204e40;
+@media (hover: hover) and (pointer: fine) {
+  .scope.active:hover {
+    background: #204e40;
+  }
 }
 .day-section {
   padding: 24px 0 0;
@@ -354,9 +363,11 @@ strong {
   color: white;
   border-color: var(--brand);
 }
-.primary:hover:not(:disabled) {
-  background: #183f34;
-  color: white;
+@media (hover: hover) and (pointer: fine) {
+  .primary:hover:not(:disabled) {
+    background: #183f34;
+    color: white;
+  }
 }
 .question {
   text-align: center;
