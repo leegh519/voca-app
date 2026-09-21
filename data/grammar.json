@@ -1,3 +1,12 @@
 {
-  "questions": []
+  "questions": [
+    {
+      "id": "grammar-appears-to-have-been-damaged",
+      "before": "The painting appears to ",
+      "underlined": "have been damaged",
+      "after": " during transportation.",
+      "isCorrect": true,
+      "explanation": "be p.p.는 현재 p.p.된 상태를 나타내고, have been p.p.는 과거에 p.p.된 상태를 나타냅니다."
+    }
+  ]
 }
