@@ -1,0 +1,1 @@
+ALTER TABLE `words` ADD `example` text DEFAULT '' NOT NULL;
