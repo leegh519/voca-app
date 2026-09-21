@@ -375,6 +375,13 @@ strong {
   border-radius: 14px;
   padding: 32px 20px;
 }
+.study-meaning .question,
+.study-example .question {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-height: 145px;
+}
 .question h3 {
   font: 700 40px Georgia;
   line-height: 1.4;
@@ -872,12 +879,19 @@ select {
     padding: 7px;
   }
   .question {
-    flex: 1;
+    flex: 0 0 50%;
     min-height: 0;
     padding: 12px;
     display: flex;
     flex-direction: column;
+    justify-content: center;
     gap: 6px;
+  }
+  .study-meaning .question .page-copy,
+  .study-example .question .page-copy {
+    display: grid;
+    place-items: center;
+    text-align: center;
   }
   .question .paged-text {
     font:
