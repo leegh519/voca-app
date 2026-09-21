@@ -44,3 +44,6 @@ next-env.d.ts
 /.codex/
 /outputs/
 /work/
+
+# vocabulary source photos (e.g. data/3일/, data/12/) - not needed once merged into textbook.json
+/data/[0-9]*/

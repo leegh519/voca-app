@@ -5,7 +5,7 @@
   font-synthesis: none;
   font-weight: 400;
   line-height: 1.6;
-  --green: #245849;
+  --brand: #152b53;
   --muted: #718079;
   --line: #dfe5dc;
 }
@@ -31,8 +31,8 @@ button {
     border-color 0.15s;
 }
 button:hover:not(:disabled) {
-  background: #edf2e9;
-  border-color: #a3b8a9;
+  background: #e8ebf2;
+  border-color: #8d97b3;
 }
 button:disabled {
   cursor: default;
@@ -71,11 +71,10 @@ strong {
   gap: 12px;
 }
 .brand-icon {
-  background: var(--green);
-  color: #f1d58a;
-  border-radius: 14px;
-  font: 700 24px Georgia;
-  padding: 13px;
+  display: block;
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
 }
 .brand h1 {
   font-size: 21px;
@@ -99,7 +98,7 @@ strong {
   font-size: 11px;
   letter-spacing: 2px;
   font-weight: 700;
-  color: var(--green);
+  color: var(--brand);
 }
 .intro h2 {
   font-size: 32px;
@@ -135,13 +134,13 @@ strong {
   color: var(--muted);
 }
 .scope.active {
-  background: var(--green);
-  border-color: var(--green);
+  background: var(--brand);
+  border-color: var(--brand);
   color: white;
-  box-shadow: 0 5px 16px #24584914;
+  box-shadow: 0 5px 16px #152b5314;
 }
 .scope.active span {
-  color: #c1d8ca;
+  color: #c3cbdf;
 }
 .scope.active:hover {
   background: #204e40;
@@ -188,7 +187,7 @@ strong {
   border-color: #71977d;
 }
 .day.active strong {
-  color: var(--green);
+  color: var(--brand);
 }
 .workspace {
   background: white;
@@ -218,7 +217,7 @@ strong {
 }
 .scope-count b {
   font-size: 22px;
-  color: var(--green);
+  color: var(--brand);
 }
 .scope-count span {
   display: block;
@@ -243,8 +242,8 @@ strong {
   font-size: 16px;
 }
 .mode-nav button.active {
-  color: var(--green);
-  border-bottom-color: var(--green);
+  color: var(--brand);
+  border-bottom-color: var(--brand);
   font-weight: 700;
   background: #f5f8f2;
 }
@@ -351,9 +350,9 @@ strong {
   font-size: 12px;
 }
 .primary {
-  background: var(--green);
+  background: var(--brand);
   color: white;
-  border-color: var(--green);
+  border-color: var(--brand);
 }
 .primary:hover:not(:disabled) {
   background: #183f34;
@@ -482,7 +481,7 @@ strong {
 }
 .result p b {
   font-size: 30px;
-  color: var(--green);
+  color: var(--brand);
 }
 .result .muted {
   font-size: 13px;
@@ -540,8 +539,8 @@ strong {
 .tag {
   white-space: nowrap;
   font-size: 10px;
-  color: var(--green);
-  background: #edf3e7;
+  color: var(--brand);
+  background: #e8ebf2;
   border-radius: 5px;
   padding: 3px 7px;
 }
@@ -588,7 +587,8 @@ footer p {
     font-size: 19px;
   }
   .brand-icon {
-    padding: 10px;
+    width: 36px;
+    height: 36px;
   }
   .intro {
     padding-top: 32px;
@@ -731,9 +731,9 @@ select {
     height: 36px;
   }
   .brand-icon {
-    padding: 4px 9px;
-    font-size: 20px;
-    border-radius: 9px;
+    width: 26px;
+    height: 26px;
+    border-radius: 8px;
   }
   .brand h1 {
     font-size: 17px;

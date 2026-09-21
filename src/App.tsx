@@ -82,7 +82,13 @@ export default function App() {
     <main className={`shell ${isGrammar ? "section-grammar" : `mode-${mode}`}`}>
       <header className="header">
         <div className="brand">
-          <span className="brand-icon">Aa</span>
+          <img
+            className="brand-icon"
+            src={`${import.meta.env.BASE_URL}favicon.svg`}
+            alt=""
+            width={40}
+            height={40}
+          />
           <div>
             <h1>하루 단어</h1>
             <p>공무원 영어 · 매일 쌓이는 나의 단어장</p>
