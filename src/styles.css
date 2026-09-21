@@ -941,7 +941,7 @@ select {
     display: none;
   }
   .feedback {
-    flex: 1;
+    flex: 0 0 50%;
     min-height: 0;
     display: flex;
     flex-direction: column;
