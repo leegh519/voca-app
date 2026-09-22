@@ -25,6 +25,15 @@
       "isCorrect": false,
       "correction": "to handle",
       "explanation": "allow는 5형식에서 목적어 뒤에 to부정사를 씁니다. 따라서 users handling이 아니라 users to handle이 맞습니다."
+    },
+    {
+      "id": "grammar-demand-should-take-action",
+      "before": "Groups demanded that the government ",
+      "underlined": "should be taken",
+      "after": " action.",
+      "isCorrect": false,
+      "correction": "should take",
+      "explanation": "주장·요구·명령·제안·충고·결정(demand, recommend, command, order 등) 뒤 that절은 ‘that + 주어 + (should) + 동사원형’을 씁니다. 수동이면 ‘(should) be p.p.’를 씁니다. 여기서는 government가 action을 취하는 주체이므로 should take action이 맞습니다."
     }
   ]
 }
