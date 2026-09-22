@@ -64,6 +64,26 @@
       "id": "extra-insofar-as",
       "word": "insofar as",
       "meaning": "~하는 한; ~하는 범위에서"
+    },
+    {
+      "id": "extra-indifferent",
+      "word": "indifferent",
+      "meaning": "무관심한; 무관한"
+    },
+    {
+      "id": "extra-eligibility",
+      "word": "eligibility",
+      "meaning": "자격; 적격"
+    },
+    {
+      "id": "extra-crop",
+      "word": "crop",
+      "meaning": "농작물"
+    },
+    {
+      "id": "extra-prescribe",
+      "word": "prescribe",
+      "meaning": "처방하다"
     }
   ]
 }
