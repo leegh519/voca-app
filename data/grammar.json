@@ -32,8 +32,8 @@
       "underlined": "should be taken",
       "after": " action.",
       "isCorrect": false,
-      "correction": "should take",
-      "explanation": "주장·요구·명령·제안·충고·결정(demand, recommend, command, order 등) 뒤 that절은 ‘that + 주어 + (should) + 동사원형’을 씁니다. 수동이면 ‘(should) be p.p.’를 씁니다. 여기서는 government가 action을 취하는 주체이므로 should take action이 맞습니다."
+      "correction": "take",
+      "explanation": "주장·요구·명령·제안·충고·결정(demand, recommend, command, order 등) 뒤 that절은 ‘that + 주어 + (should) + 동사원형’을 씁니다. 수동이면 ‘(should) be p.p.’를 씁니다. 여기서는 government가 action을 취하는 주체이므로 take action이 맞습니다."
     }
   ]
 }
