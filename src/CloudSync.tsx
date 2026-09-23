@@ -73,6 +73,7 @@ export default function CloudSync({ onSyncReady }: CloudSyncProps) {
       const merged = addMissingStudyStateEntries(remoteState, localState);
       if (!sameStudyState(localState, merged.state)) {
         restoreStudyState(merged.state);
+        await saveToCloud(nextUser.id);
         window.location.reload();
         return;
       }
