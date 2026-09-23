@@ -368,6 +368,7 @@ strong {
   transition: width 0.2s;
 }
 .flashcard {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -379,6 +380,8 @@ strong {
   border-radius: 15px;
   padding: 16px;
 }
+.desktop-card { cursor: pointer; }
+.desktop-card:focus-visible { outline: 3px solid #ba8b29; outline-offset: -3px; }
 .flashcard strong {
   font:
     700 clamp(28px, 5vw, 48px) Georgia,
@@ -419,11 +422,24 @@ strong {
   color: var(--brand);
   font-weight: 700;
 }
-.bookmark.marked {
+.bookmark-icon {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  z-index: 1;
+  width: 34px;
+  height: 34px;
+  min-height: 0;
+  padding: 0;
+  border: 1px solid #dfe4d8;
+  border-radius: 9px;
+  background: #fff;
+  font-size: 16px;
+  line-height: 1;
+}
+.bookmark-icon.marked {
   background: #f7ecd0;
   border-color: #d5ae54;
-  color: #76530f;
-  font-weight: 700;
 }
 .primary {
   background: var(--brand);
@@ -637,9 +653,10 @@ strong {
   gap: 14px;
 }
 .word-list li {
+  position: relative;
   border: 1px solid var(--line);
   border-radius: 12px;
-  padding: 18px;
+  padding: 52px 18px 18px;
   min-width: 0;
 }
 .word-line {
@@ -674,10 +691,7 @@ strong {
   font-size: 10px;
   margin-top: 12px;
 }
-.word-list .bookmark {
-  margin-top: 12px;
-  font-size: 12px;
-}
+.word-list .bookmark-icon { top: 12px; left: 14px; }
 .warning {
   background: #fff3d8;
   margin: 16px 28px;

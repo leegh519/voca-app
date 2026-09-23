@@ -544,6 +544,23 @@ function Study({
         <ul className="word-list">
           {filtered.map((word) => (
             <li key={word.id}>
+              <button
+                type="button"
+                className={
+                  bookmarkedWords.has(word.id)
+                    ? "bookmark-icon marked"
+                    : "bookmark-icon"
+                }
+                aria-label={
+                  bookmarkedWords.has(word.id)
+                    ? `${word.word} 북마크 해제`
+                    : `${word.word} 북마크`
+                }
+                aria-pressed={bookmarkedWords.has(word.id)}
+                onClick={() => toggleBookmark(word)}
+              >
+                <span aria-hidden="true">🔖</span>
+              </button>
               <div className="word-line">
                 <strong lang="en">{word.word}</strong>
                 <span className="tag">
@@ -565,18 +582,6 @@ function Study({
                 {progress[word.id]?.correct ?? 0} / 시도{" "}
                 {progress[word.id]?.attempts ?? 0}
               </small>
-              <button
-                type="button"
-                className={
-                  bookmarkedWords.has(word.id)
-                    ? "bookmark marked"
-                    : "bookmark"
-                }
-                aria-pressed={bookmarkedWords.has(word.id)}
-                onClick={() => toggleBookmark(word)}
-              >
-                {bookmarkedWords.has(word.id) ? "북마크 해제" : "북마크"}
-              </button>
             </li>
           ))}
         </ul>
@@ -669,13 +674,42 @@ function Study({
       </div>
       {mode === "cards" ? (
         <>
-          <button
+          <div
             className={`flashcard desktop-card ${flipped ? "flipped" : ""}`}
+            role="button"
+            tabIndex={0}
             onClick={() => setFlipped(!flipped)}
             aria-label={
               flipped ? "카드 뒤집기: 영단어 보기" : "카드 뒤집기: 뜻 보기"
             }
+            onKeyDown={(event) => {
+              if (event.target !== event.currentTarget) return;
+              if (event.key === "Enter" || event.key === " ") {
+                event.preventDefault();
+                setFlipped((value) => !value);
+              }
+            }}
           >
+            <button
+              type="button"
+              className={
+                bookmarkedWords.has(current.id)
+                  ? "bookmark-icon marked"
+                  : "bookmark-icon"
+              }
+              aria-label={
+                bookmarkedWords.has(current.id)
+                  ? `${current.word} 북마크 해제`
+                  : `${current.word} 북마크`
+              }
+              aria-pressed={bookmarkedWords.has(current.id)}
+              onClick={(event) => {
+                event.stopPropagation();
+                toggleBookmark(current);
+              }}
+            >
+              <span aria-hidden="true">🔖</span>
+            </button>
             <span className="eyebrow">{flipped ? "MEANING" : "WORD"}</span>
             <strong lang={flipped ? "ko" : "en"}>
               {flipped ? current.meaning : current.word}
@@ -688,7 +722,7 @@ function Study({
               </>
             )}
             <small>눌러서 {flipped ? "단어" : "뜻"} 보기 ↻</small>
-          </button>
+          </div>
           <div
             className={`flashcard mobile-card ${flipped ? "flipped" : ""}`}
             role="button"
@@ -705,6 +739,26 @@ function Study({
               }
             }}
           >
+            <button
+              type="button"
+              className={
+                bookmarkedWords.has(current.id)
+                  ? "bookmark-icon marked"
+                  : "bookmark-icon"
+              }
+              aria-label={
+                bookmarkedWords.has(current.id)
+                  ? `${current.word} 북마크 해제`
+                  : `${current.word} 북마크`
+              }
+              aria-pressed={bookmarkedWords.has(current.id)}
+              onClick={(event) => {
+                event.stopPropagation();
+                toggleBookmark(current);
+              }}
+            >
+              <span aria-hidden="true">🔖</span>
+            </button>
             <span className="eyebrow">{flipped ? "MEANING" : "WORD"}</span>
             <PagedText
               text={
@@ -731,15 +785,6 @@ function Study({
               onClick={toggleKnown}
             >
               {knownWords.has(current.id) ? "아는 단어 ✓" : "아는 단어"}
-            </button>
-            <button
-              className={
-                bookmarkedWords.has(current.id) ? "bookmark marked" : "bookmark"
-              }
-              aria-pressed={bookmarkedWords.has(current.id)}
-              onClick={() => toggleBookmark(current)}
-            >
-              {bookmarkedWords.has(current.id) ? "북마크 해제" : "북마크"}
             </button>
             <button
               disabled={index === 0}
