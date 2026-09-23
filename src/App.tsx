@@ -308,6 +308,22 @@ export default function App() {
               >
                 연관단어
               </button>
+              {scope === "textbook" && (
+                <button
+                  type="button"
+                  className="reset-known"
+                  disabled={!selectedWords.some((word) => knownIds.includes(word.id))}
+                  onClick={() =>
+                    setKnownIds((previous) =>
+                      previous.filter(
+                        (id) => !selectedWords.some((word) => word.id === id),
+                      ),
+                    )
+                  }
+                >
+                  아는 단어 초기화
+                </button>
+              )}
             </div>
             <div className="mode-nav" role="tablist" aria-label="학습 방식">
               {modes.map((item) => (

@@ -641,6 +641,14 @@ strong {
   background: var(--brand);
   color: #fff;
 }
+.word-filters .reset-known {
+  border-color: #d5ae54;
+  color: #76530f;
+}
+.word-filters .reset-known:disabled {
+  cursor: default;
+  opacity: 0.45;
+}
 .muted {
   color: var(--muted);
   font-size: 12px;
