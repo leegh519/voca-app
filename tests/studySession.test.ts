@@ -2,7 +2,9 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import {
   loadNavigation,
+  loadWordListPreferences,
   saveNavigation,
+  saveWordListPreferences,
   wordSessionKey,
   loadWordSession,
   saveWordSession,
@@ -65,6 +67,23 @@ test("선택한 섹션, 일차, 탭을 복원하고 손상된 값은 기본값�
     section: "textbook",
     day: 1,
     mode: "cards",
+  });
+});
+test("단어 목록의 파생어와 유의어 표시 설정을 계속 유지한다", () => {
+  values.clear();
+  assert.deepEqual(loadWordListPreferences(), {
+    showDerived: true,
+    showSynonyms: true,
+  });
+  saveWordListPreferences({ showDerived: false, showSynonyms: true });
+  assert.deepEqual(loadWordListPreferences(), {
+    showDerived: false,
+    showSynonyms: true,
+  });
+  values.set("voca-app.word-list-preferences.v1", '{"showDerived":"no"}');
+  assert.deepEqual(loadWordListPreferences(), {
+    showDerived: true,
+    showSynonyms: true,
   });
 });
 test("단어 카드와 퀴즈 위치, 뒤집기, 정답 화면, 오답 목록을 복원한다", () => {

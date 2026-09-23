@@ -3,8 +3,10 @@ import GrammarStudy from "./GrammarStudy";
 import { useEffect, useMemo, useState } from "react";
 import {
   loadNavigation,
+  loadWordListPreferences,
   loadWordSession,
   saveNavigation,
+  saveWordListPreferences,
   saveWordSession,
   wordSessionKey,
 } from "./studySession";
@@ -348,8 +350,14 @@ function Study({
   );
   const [search, setSearch] = useState(initial?.search ?? "");
   const [knownIds, setKnownIds] = useState<string[]>(initial?.knownIds ?? []);
-  const [showDerived, setShowDerived] = useState(true);
-  const [showSynonyms, setShowSynonyms] = useState(true);
+  const [wordListPreferences, setWordListPreferences] = useState(
+    loadWordListPreferences,
+  );
+  const { showDerived, showSynonyms } = wordListPreferences;
+  useEffect(
+    () => saveWordListPreferences(wordListPreferences),
+    [wordListPreferences],
+  );
   const knownWords = new Set(knownIds);
   const sessionKey = wordSessionKey(section, day, mode);
   useEffect(
@@ -449,7 +457,12 @@ function Study({
             type="button"
             className={showDerived ? "active" : ""}
             aria-pressed={showDerived}
-            onClick={() => setShowDerived((value) => !value)}
+            onClick={() =>
+              setWordListPreferences((value) => ({
+                ...value,
+                showDerived: !value.showDerived,
+              }))
+            }
           >
             파생어
           </button>
@@ -457,7 +470,12 @@ function Study({
             type="button"
             className={showSynonyms ? "active" : ""}
             aria-pressed={showSynonyms}
-            onClick={() => setShowSynonyms((value) => !value)}
+            onClick={() =>
+              setWordListPreferences((value) => ({
+                ...value,
+                showSynonyms: !value.showSynonyms,
+              }))
+            }
           >
             유의어
           </button>

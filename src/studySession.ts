@@ -5,6 +5,10 @@ export type Mode = "cards" | "meaning" | "example" | "list";
 export type Section = "textbook" | "extra" | "all" | "grammar";
 
 export type Navigation = { section: Section; day: number; mode: Mode };
+export type WordListPreferences = {
+  showDerived: boolean;
+  showSynonyms: boolean;
+};
 export type WordSession = {
   queue: StudyWord[];
   index: number;
@@ -26,6 +30,7 @@ export type GrammarSession = {
 };
 
 const NAVIGATION_KEY = "voca-app.navigation.v1";
+const WORD_LIST_PREFERENCES_KEY = "voca-app.word-list-preferences.v1";
 const WORD_SESSION_PREFIX = "voca-app.word-session.v1:";
 const GRAMMAR_SESSION_KEY = "voca-app.grammar-session.v1";
 const sections: Section[] = ["textbook", "extra", "all", "grammar"];
@@ -103,6 +108,22 @@ export function loadNavigation(): Navigation {
 }
 export function saveNavigation(value: Navigation) {
   write(NAVIGATION_KEY, value);
+}
+export function loadWordListPreferences(): WordListPreferences {
+  const saved = read(WORD_LIST_PREFERENCES_KEY);
+  return {
+    showDerived:
+      !object(saved) || typeof saved.showDerived !== "boolean"
+        ? true
+        : saved.showDerived,
+    showSynonyms:
+      !object(saved) || typeof saved.showSynonyms !== "boolean"
+        ? true
+        : saved.showSynonyms,
+  };
+}
+export function saveWordListPreferences(value: WordListPreferences) {
+  write(WORD_LIST_PREFERENCES_KEY, value);
 }
 export function wordSessionKey(
   section: Exclude<Section, "grammar">,
