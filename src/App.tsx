@@ -18,6 +18,7 @@ import {
   parseProgress,
   selectWords,
   shuffle,
+  relatedWordType,
   validateData,
 } from "./vocabulary";
 import type { Progress, Scope, StudyWord } from "./vocabulary";
@@ -347,6 +348,8 @@ function Study({
   );
   const [search, setSearch] = useState(initial?.search ?? "");
   const [knownIds, setKnownIds] = useState<string[]>(initial?.knownIds ?? []);
+  const [showDerived, setShowDerived] = useState(true);
+  const [showSynonyms, setShowSynonyms] = useState(true);
   const knownWords = new Set(knownIds);
   const sessionKey = wordSessionKey(section, day, mode);
   useEffect(
@@ -423,6 +426,8 @@ function Study({
   }
   if (mode === "list") {
     const filtered = words.filter((word) =>
+      (showDerived || relatedWordType(word) !== "derived") &&
+      (showSynonyms || relatedWordType(word) !== "synonym") &&
       `${word.word} ${word.meaning} ${word.source ?? ""}`
         .toLowerCase()
         .includes(search.toLowerCase()),
@@ -438,6 +443,25 @@ function Study({
             onChange={(event) => setSearch(event.target.value)}
           />
         </label>
+        <div className="word-filters" aria-label="관련 단어 표시">
+          <span>관련 단어 표시</span>
+          <button
+            type="button"
+            className={showDerived ? "active" : ""}
+            aria-pressed={showDerived}
+            onClick={() => setShowDerived((value) => !value)}
+          >
+            파생어
+          </button>
+          <button
+            type="button"
+            className={showSynonyms ? "active" : ""}
+            aria-pressed={showSynonyms}
+            onClick={() => setShowSynonyms((value) => !value)}
+          >
+            유의어
+          </button>
+        </div>
         <p className="muted">{filtered.length}개 단어</p>
         <ul className="word-list">
           {filtered.map((word) => (

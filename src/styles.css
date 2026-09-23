@@ -534,6 +534,32 @@ strong {
   margin: 7px 0 15px;
   background: #fcfdf9;
 }
+.word-filters {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0 0 15px;
+  font-size: 12px;
+}
+.word-filters > span {
+  color: var(--muted);
+  margin-right: 2px;
+}
+.word-filters button {
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 5px 10px;
+  background: #fff;
+  color: var(--muted);
+  font: inherit;
+  cursor: pointer;
+}
+.word-filters button.active {
+  border-color: var(--brand);
+  background: var(--brand);
+  color: #fff;
+}
 .muted {
   color: var(--muted);
   font-size: 12px;

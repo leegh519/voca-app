@@ -13,6 +13,13 @@ export type Book = { title: string; days: { day: number; words: Word[] }[] };
 export type Extra = { words: Word[] };
 export type RecordEntry = { correct: number; attempts: number };
 export type Progress = Record<string, RecordEntry>;
+export type RelatedWordType = "derived" | "synonym" | null;
+
+export function relatedWordType(word: Pick<Word, "note">): RelatedWordType {
+  if (word.note?.startsWith("파생어 · 기준 단어:")) return "derived";
+  if (word.note?.startsWith("유의어 · 기준 단어:")) return "synonym";
+  return null;
+}
 
 function object(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
