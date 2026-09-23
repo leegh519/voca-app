@@ -67,7 +67,25 @@ export default function App() {
   const [knownIds, setKnownIds] = useState(() => loadKnownWordIds(allWords));
   useEffect(() => saveKnownWordIds(knownIds), [knownIds]);
   const [warning, setWarning] = useState(saved.warning);
-  const words = useMemo(() => selectWords(allWords, scope, day), [scope, day]);
+  const [wordListPreferences, setWordListPreferences] = useState(
+    loadWordListPreferences,
+  );
+  const { showRelated } = wordListPreferences;
+  useEffect(
+    () => saveWordListPreferences(wordListPreferences),
+    [wordListPreferences],
+  );
+  const selectedWords = useMemo(
+    () => selectWords(allWords, scope, day),
+    [scope, day],
+  );
+  const words = useMemo(
+    () =>
+      showRelated
+        ? selectedWords
+        : selectedWords.filter((word) => !isRelatedWord(word)),
+    [selectedWords, showRelated],
+  );
   const label = isGrammar
     ? "문법 O/X"
     : scope === "textbook"
@@ -245,22 +263,40 @@ export default function App() {
           )}
         </div>
         {!isGrammar && (
-          <div className="mode-nav" role="tablist" aria-label="학습 방식">
-            {modes.map((item) => (
+          <>
+            <div className="word-filters study-filters" aria-label="관련 단어 표시">
+              <span>학습에 연관 단어 포함</span>
               <button
-                key={item.id}
-                id={`tab-${item.id}`}
-                role="tab"
-                aria-selected={mode === item.id}
-                aria-controls="study-panel"
-                className={mode === item.id ? "active" : ""}
-                onClick={() => setMode(item.id)}
+                type="button"
+                className={showRelated ? "active" : ""}
+                aria-pressed={showRelated}
+                onClick={() =>
+                  setWordListPreferences((value) => ({
+                    ...value,
+                    showRelated: !value.showRelated,
+                  }))
+                }
               >
-                <span aria-hidden="true">{item.icon}</span>
-                {item.label}
+                파생어 · 유의어 · 반의어 · cf
               </button>
-            ))}
-          </div>
+            </div>
+            <div className="mode-nav" role="tablist" aria-label="학습 방식">
+              {modes.map((item) => (
+                <button
+                  key={item.id}
+                  id={`tab-${item.id}`}
+                  role="tab"
+                  aria-selected={mode === item.id}
+                  aria-controls="study-panel"
+                  className={mode === item.id ? "active" : ""}
+                  onClick={() => setMode(item.id)}
+                >
+                  <span aria-hidden="true">{item.icon}</span>
+                  {item.label}
+                </button>
+              ))}
+            </div>
+          </>
         )}
         {warning && (
           <p className="warning" role="status">
@@ -296,7 +332,7 @@ export default function App() {
               </div>
             ) : (
               <Study
-                key={`${scope}-${day}-${mode}`}
+                key={`${scope}-${day}-${mode}-${showRelated}`}
                 words={words}
                 section={scope}
                 day={day}
@@ -368,14 +404,6 @@ function Study({
     if (!initial?.knownIds.length) return;
     setKnownIds((previous) => [...new Set([...previous, ...initial.knownIds])]);
   }, [initial, setKnownIds]);
-  const [wordListPreferences, setWordListPreferences] = useState(
-    loadWordListPreferences,
-  );
-  const { showRelated } = wordListPreferences;
-  useEffect(
-    () => saveWordListPreferences(wordListPreferences),
-    [wordListPreferences],
-  );
   const knownWords = new Set(knownIds);
   const sessionKey = wordSessionKey(section, day, mode);
   useEffect(
@@ -449,7 +477,6 @@ function Study({
   }
   if (mode === "list") {
     const filtered = words.filter((word) =>
-      (showRelated || !isRelatedWord(word)) &&
       `${word.word} ${word.meaning} ${word.source ?? ""}`
         .toLowerCase()
         .includes(search.toLowerCase()),
@@ -465,22 +492,6 @@ function Study({
             onChange={(event) => setSearch(event.target.value)}
           />
         </label>
-        <div className="word-filters" aria-label="관련 단어 표시">
-          <span>관련 단어 표시</span>
-          <button
-            type="button"
-            className={showRelated ? "active" : ""}
-            aria-pressed={showRelated}
-            onClick={() =>
-              setWordListPreferences((value) => ({
-                ...value,
-                showRelated: !value.showRelated,
-              }))
-            }
-          >
-            연관 단어 (파생어 · 유의어 · 반의어 · cf)
-          </button>
-        </div>
         <p className="muted">{filtered.length}개 단어</p>
         <ul className="word-list">
           {filtered.map((word) => (

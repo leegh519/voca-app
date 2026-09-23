@@ -601,6 +601,10 @@ strong {
   color: var(--muted);
   margin-right: 2px;
 }
+.study-filters {
+  padding: 14px 28px 0;
+  margin-bottom: 0;
+}
 .word-filters button {
   border: 1px solid var(--line);
   border-radius: 999px;
@@ -740,6 +744,9 @@ footer p {
   .study-body,
   .list-panel {
     padding: 18px;
+  }
+  .study-filters {
+    padding: 12px 18px 0;
   }
   .choices,
   .word-list {
