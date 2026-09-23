@@ -1,6 +1,7 @@
 import PagedText from "./PagedText";
 import GrammarStudy from "./GrammarStudy";
 import CloudSync from "./CloudSync";
+import { Bookmark } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import type { Dispatch, SetStateAction } from "react";
 import {
@@ -575,7 +576,7 @@ function Study({
                 aria-pressed={bookmarkedWords.has(word.id)}
                 onClick={() => toggleBookmark(word)}
               >
-                <span aria-hidden="true">🔖</span>
+                <Bookmark aria-hidden="true" size={17} strokeWidth={2} />
               </button>
               <div className="word-line">
                 <strong lang="en">{word.word}</strong>
@@ -724,7 +725,7 @@ function Study({
                 toggleBookmark(current);
               }}
             >
-              <span aria-hidden="true">🔖</span>
+              <Bookmark aria-hidden="true" size={17} strokeWidth={2} />
             </button>
             <span className="eyebrow">{flipped ? "MEANING" : "WORD"}</span>
             <strong lang={flipped ? "ko" : "en"}>
@@ -773,7 +774,7 @@ function Study({
                 toggleBookmark(current);
               }}
             >
-              <span aria-hidden="true">🔖</span>
+              <Bookmark aria-hidden="true" size={17} strokeWidth={2} />
             </button>
             <span className="eyebrow">{flipped ? "MEANING" : "WORD"}</span>
             <PagedText

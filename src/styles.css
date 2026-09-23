@@ -441,6 +441,10 @@ strong {
   background: #f7ecd0;
   border-color: #d5ae54;
 }
+.bookmark-icon.marked svg {
+  fill: #d5ae54;
+  stroke: #76530f;
+}
 .primary {
   background: var(--brand);
   color: white;
