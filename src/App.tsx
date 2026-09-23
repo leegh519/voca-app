@@ -475,6 +475,9 @@ function Study({
     setIndex(0);
     setFlipped(false);
   }
+  function shuffleUnknownCards() {
+    restart(queue.filter((word) => !knownWords.has(word.id)));
+  }
   if (mode === "list") {
     const filtered = words.filter((word) =>
       `${word.word} ${word.meaning} ${word.source ?? ""}`
@@ -681,7 +684,7 @@ function Study({
             >
               ← 이전
             </button>
-            <button onClick={() => restart(words)}>순서 섞기</button>
+            <button onClick={shuffleUnknownCards}>순서 섞기</button>
             <button
               className="primary"
               onClick={() => {
