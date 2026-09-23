@@ -3,9 +3,11 @@ import assert from "node:assert/strict";
 import {
   loadNavigation,
   loadKnownWordIds,
+  loadBookmarkedWordIds,
   loadWordListPreferences,
   saveNavigation,
   saveKnownWordIds,
+  saveBookmarkedWordIds,
   saveWordListPreferences,
   wordSessionKey,
   loadWordSession,
@@ -95,6 +97,17 @@ test("아는 단어 표시는 모든 단어장 세션에서 공유한다", () =>
     '["day01-b", "day01-b"]',
   );
   assert.deepEqual(loadKnownWordIds(words), []);
+});
+test("북마크 단어는 유효한 단어 ID만 유지한다", () => {
+  values.clear();
+  saveBookmarkedWordIds(["day01-b"]);
+  assert.deepEqual(loadBookmarkedWordIds(words), ["day01-b"]);
+  assert.deepEqual(loadBookmarkedWordIds([words[0]]), []);
+  values.set(
+    "voca-app.bookmarked-word-ids.v1",
+    '["day01-b", "day01-b"]',
+  );
+  assert.deepEqual(loadBookmarkedWordIds(words), []);
 });
 test("단어 카드와 퀴즈 위치, 뒤집기, 정답 화면, 오답 목록을 복원한다", () => {
   values.clear();

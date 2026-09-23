@@ -54,7 +54,7 @@ test("identifies only related-word entries marked with a base word", () => {
   assert.equal(isRelatedWord({ note: "cf · 기준 단어: affect" }), true);
   assert.equal(isRelatedWord({ note: "유의어: glad, cheerful" }), false);
 });
-test("20일 구조를 검증하고 세 학습 범위를 서로 분리한다", () => {
+test("20일 구조를 검증하고 책·추가 단어 범위를 서로 분리한다", () => {
   assert.doesNotThrow(() => validateData(book, extra));
   assert.deepEqual(
     selectWords(words, "textbook", 1).map((w) => w.id),
@@ -69,7 +69,7 @@ test("20일 구조를 검증하고 세 학습 범위를 서로 분리한다", ()
     selectWords(words, "extra", 1).map((w) => w.id),
     ["extra-1", "extra-2"],
   );
-  assert.equal(selectWords(words, "all", 1).length, 4);
+  assert.equal(selectWords(words, "bookmarks", 1).length, 0);
 });
 test("중복 ID, 잘못된 일차와 필수 데이터 오류를 거부한다", () => {
   for (const exampleMeaning of [undefined, "", "   "]) {

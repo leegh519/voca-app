@@ -8,7 +8,7 @@ export type Word = {
   source?: string;
 };
 export type StudyWord = Word & { group: "textbook" | "extra"; day?: number };
-export type Scope = "textbook" | "extra" | "all";
+export type Scope = "textbook" | "extra" | "bookmarks";
 export type Book = { title: string; days: { day: number; words: Word[] }[] };
 export type Extra = { words: Word[] };
 export type RecordEntry = { correct: number; attempts: number };
@@ -107,8 +107,9 @@ export function collectWords(book: Book, extra: Extra): StudyWord[] {
 export function selectWords(words: StudyWord[], scope: Scope, day: number) {
   return words.filter(
     (word) =>
-      scope === "all" ||
-      (word.group === scope && (scope === "extra" || word.day === day)),
+      scope !== "bookmarks" &&
+      word.group === scope &&
+      (scope === "extra" || word.day === day),
   );
 }
 export function shuffle<T>(items: readonly T[], random = Math.random): T[] {

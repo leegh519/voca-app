@@ -5,11 +5,13 @@ import { useEffect, useMemo, useState } from "react";
 import type { Dispatch, SetStateAction } from "react";
 import {
   loadKnownWordIds,
+  loadBookmarkedWordIds,
   loadNavigation,
   loadWordListPreferences,
   loadWordSession,
   saveNavigation,
   saveKnownWordIds,
+  saveBookmarkedWordIds,
   saveWordListPreferences,
   saveWordSession,
   wordSessionKey,
@@ -61,7 +63,10 @@ export default function App() {
   const [navigation] = useState(loadNavigation);
   const [section, setSection] = useState<Section>(navigation.section);
   const isGrammar = section === "grammar";
-  const scope: Scope = isGrammar ? "all" : section;
+  const scope: Scope =
+    section === "textbook" || section === "extra" || section === "bookmarks"
+      ? section
+      : "textbook";
   const [day, setDay] = useState(navigation.day);
   const [mode, setMode] = useState<Mode>(navigation.mode);
   useEffect(() => saveNavigation({ section, day, mode }), [section, day, mode]);
@@ -69,9 +74,13 @@ export default function App() {
   const [progress, setProgress] = useState<Progress>(saved.progress);
   const [userContent, setUserContent] = useState<UserContent>({ extra, grammar });
   function handleSyncReady(signedIn: boolean) {
-    setUserContent(
-      signedIn ? loadUserContent(textbook, extra, grammar) : { extra, grammar },
-    );
+    const content = signedIn
+      ? loadUserContent(textbook, extra, grammar)
+      : { extra, grammar };
+    const contentWords = collectWords(textbook, content.extra);
+    setUserContent(content);
+    setKnownIds(loadKnownWordIds(contentWords));
+    setBookmarkedIds(loadBookmarkedWordIds(contentWords));
   }
   const allWords = useMemo(
     () => collectWords(textbook, userContent.extra),
@@ -79,6 +88,10 @@ export default function App() {
   );
   const [knownIds, setKnownIds] = useState(() => loadKnownWordIds(allWords));
   useEffect(() => saveKnownWordIds(knownIds), [knownIds]);
+  const [bookmarkedIds, setBookmarkedIds] = useState(() =>
+    loadBookmarkedWordIds(allWords),
+  );
+  useEffect(() => saveBookmarkedWordIds(bookmarkedIds), [bookmarkedIds]);
   const [warning, setWarning] = useState(saved.warning);
   const [wordListPreferences, setWordListPreferences] = useState(
     loadWordListPreferences,
@@ -89,12 +102,15 @@ export default function App() {
     [wordListPreferences],
   );
   const selectedWords = useMemo(
-    () => selectWords(allWords, scope, day),
-    [scope, day],
+    () =>
+      scope === "bookmarks"
+        ? allWords.filter((word) => bookmarkedIds.includes(word.id))
+        : selectWords(allWords, scope, day),
+    [allWords, bookmarkedIds, scope, day],
   );
   const words = useMemo(
     () =>
-      showRelated
+      showRelated || scope === "bookmarks"
         ? selectedWords
         : selectedWords.filter((word) => !isRelatedWord(word)),
     [selectedWords, showRelated],
@@ -105,7 +121,7 @@ export default function App() {
       ? `DAY ${String(day).padStart(2, "0")}`
       : scope === "extra"
         ? "추가 단어"
-        : "전체 단어";
+        : "북마크 단어";
   const practiced = words.filter(
     (word) => progress[word.id]?.attempts > 0,
   ).length;
@@ -157,7 +173,7 @@ export default function App() {
           >
             <option value="textbook">20일 단어장</option>
             <option value="extra">추가 단어</option>
-            <option value="all">전체 단어</option>
+            <option value="bookmarks">북마크 단어</option>
             <option value="grammar">문법</option>
           </select>
         </label>
@@ -207,9 +223,9 @@ export default function App() {
               detail: "하프모의고사 · 새로 만난 단어",
             },
             {
-              id: "all",
-              name: "전체 단어",
-              detail: "모든 단어를 한 번에 복습",
+              id: "bookmarks",
+              name: "북마크 단어",
+              detail: "따로 모아 반복할 단어",
             },
             {
               id: "grammar",
@@ -261,7 +277,7 @@ export default function App() {
                   ? "하루만큼, 확실하게."
                   : scope === "extra"
                     ? "새로 만난 단어를 내 것으로."
-                    : "지금까지의 단어, 한자리에."}
+                  : "따로 모은 단어, 한자리에."}
             </h2>
           </div>
           {isGrammar ? (
@@ -330,14 +346,16 @@ export default function App() {
                     ? `${day}일차 단어를 기다리고 있어요`
                     : scope === "extra"
                       ? "새로 만난 단어를 모아보세요"
-                      : "첫 단어를 등록해 주세요"}
+                      : "북마크한 단어가 없어요"}
                 </h3>
                 <p>
                   {scope === "textbook"
                     ? "책의 단어를 보내며 “이 단어들을 " +
                       day +
                       "일차에 등록해줘”라고 요청하세요."
-                    : "“하프모의고사 추가 단어로 등록해줘”라고 단어를 보내주세요."}
+                    : scope === "extra"
+                      ? "“하프모의고사 추가 단어로 등록해줘”라고 단어를 보내주세요."
+                      : "플래시카드나 단어 목록에서 북마크를 추가해 보세요."}
                 </p>
                 <small>
                   등록한 단어로 플래시카드와 테스트를 바로 시작할 수 있어요.
@@ -345,7 +363,7 @@ export default function App() {
               </div>
             ) : (
               <Study
-                key={`${scope}-${day}-${mode}-${showRelated}`}
+                key={`${scope}-${day}-${mode}-${showRelated}-${words.map((word) => word.id).join(",")}`}
                 words={words}
                 section={scope}
                 day={day}
@@ -354,6 +372,8 @@ export default function App() {
                 record={record}
                 knownIds={knownIds}
                 setKnownIds={setKnownIds}
+                bookmarkedIds={bookmarkedIds}
+                setBookmarkedIds={setBookmarkedIds}
               />
             )}
           </div>
@@ -377,6 +397,8 @@ function Study({
   record,
   knownIds,
   setKnownIds,
+  bookmarkedIds,
+  setBookmarkedIds,
 }: {
   words: StudyWord[];
   section: Scope;
@@ -386,6 +408,8 @@ function Study({
   record: (word: StudyWord, correct: boolean) => void;
   knownIds: string[];
   setKnownIds: Dispatch<SetStateAction<string[]>>;
+  bookmarkedIds: string[];
+  setBookmarkedIds: Dispatch<SetStateAction<string[]>>;
 }) {
   const [initial] = useState(() =>
     loadWordSession(wordSessionKey(section, day, mode), words, mode),
@@ -418,6 +442,7 @@ function Study({
     setKnownIds((previous) => [...new Set([...previous, ...initial.knownIds])]);
   }, [initial, setKnownIds]);
   const knownWords = new Set(knownIds);
+  const bookmarkedWords = new Set(bookmarkedIds);
   const sessionKey = wordSessionKey(section, day, mode);
   useEffect(
     () =>
@@ -482,6 +507,13 @@ function Study({
         : [...previous, current.id],
     );
   }
+  function toggleBookmark(word: StudyWord) {
+    setBookmarkedIds((previous) =>
+      previous.includes(word.id)
+        ? previous.filter((id) => id !== word.id)
+        : [...previous, word.id],
+    );
+  }
   function nextCardRound() {
     const remaining = queue.filter((word) => !knownWords.has(word.id));
     setQueue(remaining);
@@ -533,6 +565,18 @@ function Study({
                 {progress[word.id]?.correct ?? 0} / 시도{" "}
                 {progress[word.id]?.attempts ?? 0}
               </small>
+              <button
+                type="button"
+                className={
+                  bookmarkedWords.has(word.id)
+                    ? "bookmark marked"
+                    : "bookmark"
+                }
+                aria-pressed={bookmarkedWords.has(word.id)}
+                onClick={() => toggleBookmark(word)}
+              >
+                {bookmarkedWords.has(word.id) ? "북마크 해제" : "북마크"}
+              </button>
             </li>
           ))}
         </ul>
@@ -687,6 +731,15 @@ function Study({
               onClick={toggleKnown}
             >
               {knownWords.has(current.id) ? "아는 단어 ✓" : "아는 단어"}
+            </button>
+            <button
+              className={
+                bookmarkedWords.has(current.id) ? "bookmark marked" : "bookmark"
+              }
+              aria-pressed={bookmarkedWords.has(current.id)}
+              onClick={() => toggleBookmark(current)}
+            >
+              {bookmarkedWords.has(current.id) ? "북마크 해제" : "북마크"}
             </button>
             <button
               disabled={index === 0}

@@ -419,6 +419,12 @@ strong {
   color: var(--brand);
   font-weight: 700;
 }
+.bookmark.marked {
+  background: #f7ecd0;
+  border-color: #d5ae54;
+  color: #76530f;
+  font-weight: 700;
+}
 .primary {
   background: var(--brand);
   color: white;
@@ -667,6 +673,10 @@ strong {
   color: #8a948c;
   font-size: 10px;
   margin-top: 12px;
+}
+.word-list .bookmark {
+  margin-top: 12px;
+  font-size: 12px;
 }
 .warning {
   background: #fff3d8;
