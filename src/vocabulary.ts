@@ -21,6 +21,10 @@ export function relatedWordType(word: Pick<Word, "note">): RelatedWordType {
   return null;
 }
 
+export function isRelatedWord(word: Pick<Word, "note">) {
+  return /^(파생어|유의어|반의어|cf) · 기준 단어:/.test(word.note ?? "");
+}
+
 function object(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }

@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import {
   collectWords,
   meaningChoices,
+  isRelatedWord,
   relatedWordType,
   parseProgress,
   selectWords,
@@ -49,6 +50,9 @@ test("identifies only related-word entries marked with a base word", () => {
     relatedWordType({ note: "유의어: glad, cheerful" }),
     null,
   );
+  assert.equal(isRelatedWord({ note: "반의어 · 기준 단어: happy" }), true);
+  assert.equal(isRelatedWord({ note: "cf · 기준 단어: affect" }), true);
+  assert.equal(isRelatedWord({ note: "유의어: glad, cheerful" }), false);
 });
 test("20일 구조를 검증하고 세 학습 범위를 서로 분리한다", () => {
   assert.doesNotThrow(() => validateData(book, extra));

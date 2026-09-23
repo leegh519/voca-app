@@ -7,8 +7,7 @@ export type Section = "textbook" | "extra" | "all" | "grammar";
 
 export type Navigation = { section: Section; day: number; mode: Mode };
 export type WordListPreferences = {
-  showDerived: boolean;
-  showSynonyms: boolean;
+  showRelated: boolean;
 };
 export type WordSession = {
   queue: StudyWord[];
@@ -115,14 +114,12 @@ export function saveNavigation(value: Navigation) {
 export function loadWordListPreferences(): WordListPreferences {
   const saved = read(WORD_LIST_PREFERENCES_KEY);
   return {
-    showDerived:
-      !object(saved) || typeof saved.showDerived !== "boolean"
+    showRelated:
+      !object(saved)
         ? true
-        : saved.showDerived,
-    showSynonyms:
-      !object(saved) || typeof saved.showSynonyms !== "boolean"
-        ? true
-        : saved.showSynonyms,
+        : typeof saved.showRelated === "boolean"
+          ? saved.showRelated
+          : saved.showDerived !== false && saved.showSynonyms !== false,
   };
 }
 export function saveWordListPreferences(value: WordListPreferences) {

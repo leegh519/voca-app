@@ -71,21 +71,18 @@ test("선택한 섹션, 일차, 탭을 복원하고 손상된 값은 기본값�
     mode: "cards",
   });
 });
-test("단어 목록의 파생어와 유의어 표시 설정을 계속 유지한다", () => {
+test("단어 목록의 연관 단어 표시 설정을 계속 유지한다", () => {
   values.clear();
   assert.deepEqual(loadWordListPreferences(), {
-    showDerived: true,
-    showSynonyms: true,
+    showRelated: true,
   });
-  saveWordListPreferences({ showDerived: false, showSynonyms: true });
+  saveWordListPreferences({ showRelated: false });
   assert.deepEqual(loadWordListPreferences(), {
-    showDerived: false,
-    showSynonyms: true,
+    showRelated: false,
   });
-  values.set("voca-app.word-list-preferences.v1", '{"showDerived":"no"}');
+  values.set("voca-app.word-list-preferences.v1", '{"showDerived":false}');
   assert.deepEqual(loadWordListPreferences(), {
-    showDerived: true,
-    showSynonyms: true,
+    showRelated: false,
   });
 });
 test("아는 단어 표시는 모든 단어장 세션에서 공유한다", () => {

@@ -24,7 +24,7 @@ import {
   parseProgress,
   selectWords,
   shuffle,
-  relatedWordType,
+  isRelatedWord,
   validateData,
 } from "./vocabulary";
 import type { Progress, Scope, StudyWord } from "./vocabulary";
@@ -371,7 +371,7 @@ function Study({
   const [wordListPreferences, setWordListPreferences] = useState(
     loadWordListPreferences,
   );
-  const { showDerived, showSynonyms } = wordListPreferences;
+  const { showRelated } = wordListPreferences;
   useEffect(
     () => saveWordListPreferences(wordListPreferences),
     [wordListPreferences],
@@ -449,8 +449,7 @@ function Study({
   }
   if (mode === "list") {
     const filtered = words.filter((word) =>
-      (showDerived || relatedWordType(word) !== "derived") &&
-      (showSynonyms || relatedWordType(word) !== "synonym") &&
+      (showRelated || !isRelatedWord(word)) &&
       `${word.word} ${word.meaning} ${word.source ?? ""}`
         .toLowerCase()
         .includes(search.toLowerCase()),
@@ -470,29 +469,16 @@ function Study({
           <span>관련 단어 표시</span>
           <button
             type="button"
-            className={showDerived ? "active" : ""}
-            aria-pressed={showDerived}
+            className={showRelated ? "active" : ""}
+            aria-pressed={showRelated}
             onClick={() =>
               setWordListPreferences((value) => ({
                 ...value,
-                showDerived: !value.showDerived,
+                showRelated: !value.showRelated,
               }))
             }
           >
-            파생어
-          </button>
-          <button
-            type="button"
-            className={showSynonyms ? "active" : ""}
-            aria-pressed={showSynonyms}
-            onClick={() =>
-              setWordListPreferences((value) => ({
-                ...value,
-                showSynonyms: !value.showSynonyms,
-              }))
-            }
-          >
-            유의어
+            연관 단어 (파생어 · 유의어 · 반의어 · cf)
           </button>
         </div>
         <p className="muted">{filtered.length}개 단어</p>
