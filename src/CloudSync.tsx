@@ -27,13 +27,13 @@ export default function CloudSync({ onSyncReady }: CloudSyncProps) {
   const readyUserId = useRef<string | null>(null);
   const saveTimer = useRef<number | null>(null);
 
-  async function saveToCloud(userId: string) {
+  async function saveToCloud(userId: string, state = captureStudyState()) {
     setStatus("saving");
     setMessage("저장 중");
     const { error } = await supabase.from("user_study_state").upsert(
       {
         user_id: userId,
-        state: captureStudyState(),
+        state,
         updated_at: new Date().toISOString(),
       },
       { onConflict: "user_id" },
@@ -73,8 +73,9 @@ export default function CloudSync({ onSyncReady }: CloudSyncProps) {
       const merged = addMissingStudyStateEntries(remoteState, localState);
       if (!sameStudyState(localState, merged.state)) {
         restoreStudyState(merged.state);
-        await saveToCloud(nextUser.id);
-        window.location.reload();
+        readyUserId.current = nextUser.id;
+        await saveToCloud(nextUser.id, merged.state);
+        onSyncReady(true);
         return;
       }
     }
