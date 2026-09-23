@@ -18,6 +18,7 @@ import type { Mode, Section } from "./studySession";
 import textbook from "../data/textbook.json";
 import extra from "../data/extra.json";
 import grammar from "../data/grammar.json";
+import { validateGrammar } from "./grammar";
 import {
   collectWords,
   meaningChoices,
@@ -29,9 +30,10 @@ import {
 } from "./vocabulary";
 import type { Progress, Scope, StudyWord } from "./vocabulary";
 import { notifyStudyStateChanged } from "./localStudyState";
+import { loadUserContent, saveUserContent } from "./userContent";
 
 validateData(textbook, extra);
-const allWords = collectWords(textbook, extra);
+validateGrammar(grammar);
 const STORAGE_KEY = "voca-app.progress.v1";
 const modes: { id: Mode; label: string; icon: string }[] = [
   { id: "cards", label: "플래시카드", icon: "▱" },
@@ -64,6 +66,12 @@ export default function App() {
   useEffect(() => saveNavigation({ section, day, mode }), [section, day, mode]);
   const [saved] = useState(readSaved);
   const [progress, setProgress] = useState<Progress>(saved.progress);
+  const [userContent] = useState(() => loadUserContent(textbook, extra, grammar));
+  useEffect(() => saveUserContent(userContent), [userContent]);
+  const allWords = useMemo(
+    () => collectWords(textbook, userContent.extra),
+    [userContent.extra],
+  );
   const [knownIds, setKnownIds] = useState(() => loadKnownWordIds(allWords));
   useEffect(() => saveKnownWordIds(knownIds), [knownIds]);
   const [warning, setWarning] = useState(saved.warning);
@@ -149,7 +157,7 @@ export default function App() {
           </select>
         </label>
         {isGrammar ? (
-          <span className="mobile-count">{grammar.questions.length}문제</span>
+          <span className="mobile-count">{userContent.grammar.questions.length}문제</span>
         ) : scope === "textbook" ? (
           <label>
             일차
@@ -253,7 +261,7 @@ export default function App() {
           </div>
           {isGrammar ? (
             <div className="scope-count">
-              <b>{grammar.questions.length}</b> 문제
+              <b>{userContent.grammar.questions.length}</b> 문제
             </div>
           ) : (
             <div className="scope-count">
@@ -305,7 +313,7 @@ export default function App() {
         )}
         {isGrammar ? (
           <div id="study-panel">
-            <GrammarStudy />
+            <GrammarStudy questions={userContent.grammar.questions} />
           </div>
         ) : (
           <div id="study-panel" role="tabpanel" aria-labelledby={`tab-${mode}`}>

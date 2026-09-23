@@ -1,15 +1,16 @@
 import { useEffect, useState } from "react";
 import { loadGrammarSession, saveGrammarSession } from "./studySession";
-import grammar from "../data/grammar.json";
 import { gradeGrammar, grammarSentence, validateGrammar } from "./grammar";
 import type { GrammarQuestion } from "./grammar";
 import { shuffle } from "./vocabulary";
 import PagedText from "./PagedText";
 
-validateGrammar(grammar);
-const questions: GrammarQuestion[] = grammar.questions;
-
-export default function GrammarStudy() {
+export default function GrammarStudy({
+  questions,
+}: {
+  questions: GrammarQuestion[];
+}) {
+  validateGrammar({ questions });
   const [initial] = useState(() => loadGrammarSession(questions));
   const [queue, setQueue] = useState(
     () => initial?.queue ?? shuffle(questions),

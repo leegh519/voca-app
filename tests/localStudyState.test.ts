@@ -1,6 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import {
+  addMissingStudyStateEntries,
   captureStudyState,
   parseStoredStudyState,
   restoreStudyState,
@@ -59,4 +60,30 @@ test("클라우드 데이터 형식과 순서에 무관한 동일성을 검증�
     parseStoredStudyState({ version: 1, entries: { unsafe: "value" } }),
     null,
   );
+});
+
+test("기존 클라우드 기록에는 개인 콘텐츠만 안전하게 보강한다", () => {
+  const remote = {
+    version: 1 as const,
+    entries: { "voca-app.progress.v1": "{}" },
+  };
+  const local = {
+    version: 1 as const,
+    entries: {
+      "voca-app.progress.v1": "{\"new\":true}",
+      "voca-app.extra-words.v1": "{\"words\":[]}",
+      "voca-app.grammar-questions.v1": "{\"questions\":[]}",
+    },
+  };
+  assert.deepEqual(addMissingStudyStateEntries(remote, local), {
+    changed: true,
+    state: {
+      version: 1,
+      entries: {
+        "voca-app.progress.v1": "{}",
+        "voca-app.extra-words.v1": "{\"words\":[]}",
+        "voca-app.grammar-questions.v1": "{\"questions\":[]}",
+      },
+    },
+  });
 });

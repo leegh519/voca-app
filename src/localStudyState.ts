@@ -1,5 +1,9 @@
 export const STUDY_STATE_CHANGED = "voca-app:study-state-changed";
 const STORAGE_PREFIX = "voca-app.";
+export const USER_CONTENT_STATE_KEYS = [
+  "voca-app.extra-words.v1",
+  "voca-app.grammar-questions.v1",
+] as const;
 
 export type StoredStudyState = {
   version: 1;
@@ -66,4 +70,19 @@ export function sameStudyState(left: StoredStudyState, right: StoredStudyState) 
         key === rightKeys[index] && left.entries[key] === right.entries[key],
     )
   );
+}
+
+export function addMissingStudyStateEntries(
+  remote: StoredStudyState,
+  local: StoredStudyState,
+) {
+  const entries = { ...remote.entries };
+  let changed = false;
+  for (const key of USER_CONTENT_STATE_KEYS) {
+    if (entries[key] === undefined && local.entries[key] !== undefined) {
+      entries[key] = local.entries[key];
+      changed = true;
+    }
+  }
+  return { state: { version: 1 as const, entries }, changed };
 }

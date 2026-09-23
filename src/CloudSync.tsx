@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import type { FormEvent } from "react";
 import type { User } from "@supabase/supabase-js";
 import {
+  addMissingStudyStateEntries,
   captureStudyState,
   parseStoredStudyState,
   restoreStudyState,
@@ -65,14 +66,16 @@ export default function CloudSync() {
     }
     if (remoteState) {
       const localState = captureStudyState();
-      if (!sameStudyState(localState, remoteState)) {
-        restoreStudyState(remoteState);
+      const merged = addMissingStudyStateEntries(remoteState, localState);
+      if (!sameStudyState(localState, merged.state)) {
+        restoreStudyState(merged.state);
         window.location.reload();
         return;
       }
     }
     readyUserId.current = nextUser.id;
-    if (!remoteState) await saveToCloud(nextUser.id);
+    if (!remoteState || addMissingStudyStateEntries(remoteState, captureStudyState()).changed)
+      await saveToCloud(nextUser.id);
     else {
       setStatus("synced");
       setMessage("동기화됨");
