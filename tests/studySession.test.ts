@@ -2,8 +2,10 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import {
   loadNavigation,
+  loadKnownWordIds,
   loadWordListPreferences,
   saveNavigation,
+  saveKnownWordIds,
   saveWordListPreferences,
   wordSessionKey,
   loadWordSession,
@@ -85,6 +87,17 @@ test("단어 목록의 파생어와 유의어 표시 설정을 계속 유지한�
     showDerived: true,
     showSynonyms: true,
   });
+});
+test("아는 단어 표시는 모든 단어장 세션에서 공유한다", () => {
+  values.clear();
+  saveKnownWordIds(["day01-b"]);
+  assert.deepEqual(loadKnownWordIds(words), ["day01-b"]);
+  assert.deepEqual(loadKnownWordIds([words[0]]), []);
+  values.set(
+    "voca-app.known-word-ids.v1",
+    '["day01-b", "day01-b"]',
+  );
+  assert.deepEqual(loadKnownWordIds(words), []);
 });
 test("단어 카드와 퀴즈 위치, 뒤집기, 정답 화면, 오답 목록을 복원한다", () => {
   values.clear();

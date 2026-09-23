@@ -1,5 +1,6 @@
 import type { GrammarQuestion } from "./grammar";
 import type { StudyWord } from "./vocabulary";
+import { notifyStudyStateChanged } from "./localStudyState.ts";
 
 export type Mode = "cards" | "meaning" | "example" | "list";
 export type Section = "textbook" | "extra" | "all" | "grammar";
@@ -31,6 +32,7 @@ export type GrammarSession = {
 
 const NAVIGATION_KEY = "voca-app.navigation.v1";
 const WORD_LIST_PREFERENCES_KEY = "voca-app.word-list-preferences.v1";
+const KNOWN_WORD_IDS_KEY = "voca-app.known-word-ids.v1";
 const WORD_SESSION_PREFIX = "voca-app.word-session.v1:";
 const GRAMMAR_SESSION_KEY = "voca-app.grammar-session.v1";
 const sections: Section[] = ["textbook", "extra", "all", "grammar"];
@@ -50,6 +52,7 @@ function read(key: string): unknown {
 function write(key: string, value: unknown) {
   try {
     localStorage.setItem(key, JSON.stringify(value));
+    notifyStudyStateChanged();
   } catch {
     // The current session remains usable when storage is unavailable.
   }
@@ -124,6 +127,20 @@ export function loadWordListPreferences(): WordListPreferences {
 }
 export function saveWordListPreferences(value: WordListPreferences) {
   write(WORD_LIST_PREFERENCES_KEY, value);
+}
+export function loadKnownWordIds(source: StudyWord[]): string[] {
+  const saved = read(KNOWN_WORD_IDS_KEY);
+  if (
+    !Array.isArray(saved) ||
+    !saved.every((id) => typeof id === "string") ||
+    new Set(saved).size !== saved.length
+  )
+    return [];
+  const sourceIds = new Set(source.map((word) => word.id));
+  return saved.filter((id) => sourceIds.has(id));
+}
+export function saveKnownWordIds(ids: string[]) {
+  write(KNOWN_WORD_IDS_KEY, ids);
 }
 export function wordSessionKey(
   section: Exclude<Section, "grammar">,

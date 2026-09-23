@@ -1,11 +1,15 @@
 import PagedText from "./PagedText";
 import GrammarStudy from "./GrammarStudy";
+import CloudSync from "./CloudSync";
 import { useEffect, useMemo, useState } from "react";
+import type { Dispatch, SetStateAction } from "react";
 import {
+  loadKnownWordIds,
   loadNavigation,
   loadWordListPreferences,
   loadWordSession,
   saveNavigation,
+  saveKnownWordIds,
   saveWordListPreferences,
   saveWordSession,
   wordSessionKey,
@@ -24,6 +28,7 @@ import {
   validateData,
 } from "./vocabulary";
 import type { Progress, Scope, StudyWord } from "./vocabulary";
+import { notifyStudyStateChanged } from "./localStudyState";
 
 validateData(textbook, extra);
 const allWords = collectWords(textbook, extra);
@@ -59,6 +64,8 @@ export default function App() {
   useEffect(() => saveNavigation({ section, day, mode }), [section, day, mode]);
   const [saved] = useState(readSaved);
   const [progress, setProgress] = useState<Progress>(saved.progress);
+  const [knownIds, setKnownIds] = useState(() => loadKnownWordIds(allWords));
+  useEffect(() => saveKnownWordIds(knownIds), [knownIds]);
   const [warning, setWarning] = useState(saved.warning);
   const words = useMemo(() => selectWords(allWords, scope, day), [scope, day]);
   const label = isGrammar
@@ -83,6 +90,7 @@ export default function App() {
     setProgress(next);
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+      notifyStudyStateChanged();
     } catch {
       setWarning(
         "브라우저 저장 공간을 사용할 수 없어 새로고침하면 이번 학습 기록이 사라집니다.",
@@ -107,6 +115,7 @@ export default function App() {
         </div>
         <span className="total">총 {allWords.length}단어</span>
       </header>
+      <CloudSync />
       <div className="mobile-controls">
         <label>
           학습
@@ -294,6 +303,8 @@ export default function App() {
                 mode={mode}
                 progress={progress}
                 record={record}
+                knownIds={knownIds}
+                setKnownIds={setKnownIds}
               />
             )}
           </div>
@@ -302,7 +313,7 @@ export default function App() {
       <footer>
         <span>조금씩, 꾸준히. 오늘도 한 걸음.</span>
         <p>
-          단어는 JSON 파일로 관리하며, 학습 기록은 현재 브라우저에만 저장됩니다.
+          단어는 JSON 파일로 관리하며, 로그인하면 학습 기록이 기기 간 동기화됩니다.
         </p>
       </footer>
     </main>
@@ -315,6 +326,8 @@ function Study({
   mode,
   progress,
   record,
+  knownIds,
+  setKnownIds,
 }: {
   words: StudyWord[];
   section: Scope;
@@ -322,6 +335,8 @@ function Study({
   mode: Mode;
   progress: Progress;
   record: (word: StudyWord, correct: boolean) => void;
+  knownIds: string[];
+  setKnownIds: Dispatch<SetStateAction<string[]>>;
 }) {
   const [initial] = useState(() =>
     loadWordSession(wordSessionKey(section, day, mode), words, mode),
@@ -349,7 +364,10 @@ function Study({
     () => initial?.choices ?? (queue[0] ? meaningChoices(queue[0], words) : []),
   );
   const [search, setSearch] = useState(initial?.search ?? "");
-  const [knownIds, setKnownIds] = useState<string[]>(initial?.knownIds ?? []);
+  useEffect(() => {
+    if (!initial?.knownIds.length) return;
+    setKnownIds((previous) => [...new Set([...previous, ...initial.knownIds])]);
+  }, [initial, setKnownIds]);
   const [wordListPreferences, setWordListPreferences] = useState(
     loadWordListPreferences,
   );
@@ -426,9 +444,6 @@ function Study({
   function nextCardRound() {
     const remaining = queue.filter((word) => !knownWords.has(word.id));
     setQueue(remaining);
-    setKnownIds((previous) =>
-      previous.filter((id) => remaining.some((word) => word.id === id)),
-    );
     setIndex(0);
     setFlipped(false);
   }
@@ -522,7 +537,9 @@ function Study({
           <button
             className="primary"
             onClick={() => {
-              setKnownIds([]);
+              setKnownIds((previous) =>
+                previous.filter((id) => !words.some((word) => word.id === id)),
+              );
               restart(words);
             }}
           >

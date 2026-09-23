@@ -98,6 +98,61 @@ strong {
   padding: 6px 13px;
   white-space: nowrap;
 }
+.cloud-sync {
+  margin-top: 14px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: #fbfcf9;
+  padding: 10px 12px;
+}
+.cloud-sync.has-error {
+  border-color: #d69a8d;
+  background: #fff7f4;
+}
+.cloud-sync-summary,
+.cloud-sync-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+.cloud-sync-summary strong,
+.cloud-sync-summary span {
+  display: block;
+}
+.cloud-sync-summary strong {
+  font-size: 12px;
+}
+.cloud-sync-summary span {
+  color: var(--muted);
+  font-size: 10px;
+}
+.cloud-sync-summary button,
+.cloud-sync-actions button {
+  padding: 7px 11px;
+  border-radius: 8px;
+  font-size: 11px;
+}
+.cloud-sync-form {
+  display: grid;
+  grid-template-columns: 1fr 1fr auto;
+  align-items: end;
+  gap: 10px;
+  margin-top: 10px;
+}
+.cloud-sync-form label {
+  font-size: 10px;
+  font-weight: bold;
+}
+.cloud-sync-form input {
+  display: block;
+  width: 100%;
+  margin-top: 4px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 8px 10px;
+  background: white;
+}
 .intro {
   padding: 44px 0 27px;
 }
@@ -639,6 +694,12 @@ footer p {
   .brand-icon {
     width: 36px;
     height: 36px;
+  }
+  .cloud-sync-form {
+    grid-template-columns: 1fr;
+  }
+  .cloud-sync-actions {
+    justify-content: flex-start;
   }
   .intro {
     padding-top: 32px;
