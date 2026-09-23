@@ -30,7 +30,8 @@ import {
 } from "./vocabulary";
 import type { Progress, Scope, StudyWord } from "./vocabulary";
 import { notifyStudyStateChanged } from "./localStudyState";
-import { loadUserContent, saveUserContent } from "./userContent";
+import { loadUserContent } from "./userContent";
+import type { UserContent } from "./userContent";
 
 validateData(textbook, extra);
 validateGrammar(grammar);
@@ -66,8 +67,12 @@ export default function App() {
   useEffect(() => saveNavigation({ section, day, mode }), [section, day, mode]);
   const [saved] = useState(readSaved);
   const [progress, setProgress] = useState<Progress>(saved.progress);
-  const [userContent] = useState(() => loadUserContent(textbook, extra, grammar));
-  useEffect(() => saveUserContent(userContent), [userContent]);
+  const [userContent, setUserContent] = useState<UserContent>({ extra, grammar });
+  function handleSyncReady(signedIn: boolean) {
+    setUserContent(
+      signedIn ? loadUserContent(textbook, extra, grammar) : { extra, grammar },
+    );
+  }
   const allWords = useMemo(
     () => collectWords(textbook, userContent.extra),
     [userContent.extra],
@@ -141,7 +146,7 @@ export default function App() {
         </div>
         <span className="total">총 {allWords.length}단어</span>
       </header>
-      <CloudSync />
+      <CloudSync onSyncReady={handleSyncReady} />
       <div className="mobile-controls">
         <label>
           학습

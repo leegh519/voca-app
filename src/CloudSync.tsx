@@ -13,7 +13,11 @@ import { supabase } from "./supabase";
 
 type SyncStatus = "idle" | "loading" | "synced" | "saving" | "error";
 
-export default function CloudSync() {
+type CloudSyncProps = {
+  onSyncReady: (signedIn: boolean) => void;
+};
+
+export default function CloudSync({ onSyncReady }: CloudSyncProps) {
   const [user, setUser] = useState<User | null>(null);
   const [status, setStatus] = useState<SyncStatus>("loading");
   const [message, setMessage] = useState("동기화 확인 중");
@@ -80,6 +84,7 @@ export default function CloudSync() {
       setStatus("synced");
       setMessage("동기화됨");
     }
+    onSyncReady(true);
   }
 
   useEffect(() => {
@@ -92,6 +97,7 @@ export default function CloudSync() {
       else {
         setStatus("idle");
         setMessage("로그인하면 다른 PC와 동기화됩니다.");
+        onSyncReady(false);
       }
     });
     const {
@@ -106,6 +112,7 @@ export default function CloudSync() {
           readyUserId.current = null;
           setStatus("idle");
           setMessage("로그인하면 다른 PC와 동기화됩니다.");
+          onSyncReady(false);
         }
       }, 0);
     });
