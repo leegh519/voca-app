@@ -285,7 +285,7 @@ export default function App() {
                   }))
                 }
               >
-                파생어 · 유의어 · 반의어 · cf
+                연관단어
               </button>
             </div>
             <div className="mode-nav" role="tablist" aria-label="학습 방식">
