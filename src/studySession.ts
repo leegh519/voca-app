@@ -154,6 +154,25 @@ export function loadBookmarkedWordIds(source: StudyWord[]): string[] {
 export function saveBookmarkedWordIds(ids: string[]) {
   write(BOOKMARKED_WORD_IDS_KEY, ids);
 }
+export function prepareFlashcards(
+  source: StudyWord[],
+  knownIds: string[],
+  saved: WordSession | null,
+) {
+  const known = new Set(knownIds);
+  const previous = saved?.queue ?? source;
+  const previousIds = new Set(previous.map((word) => word.id));
+  const queue = [
+    ...previous,
+    ...source.filter((word) => !previousIds.has(word.id)),
+  ].filter((word) => !known.has(word.id));
+  const nextId = previous.slice(saved?.index ?? 0).find((word) => !known.has(word.id))?.id;
+  const index = Math.max(0, queue.findIndex((word) => word.id === nextId));
+  const flipped = saved?.queue[saved.index]?.id === queue[index]?.id
+    ? saved?.flipped ?? false
+    : false;
+  return { queue, index, flipped };
+}
 export function wordSessionKey(
   section: Exclude<Section, "grammar">,
   day: number,

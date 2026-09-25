@@ -2,6 +2,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import {
   loadNavigation,
+  prepareFlashcards,
   loadKnownWordIds,
   loadBookmarkedWordIds,
   loadWordListPreferences,
@@ -50,6 +51,21 @@ const grammar: GrammarQuestion[] = [
     explanation: "올바른 동사",
   },
 ];
+test("플래시카드는 처음부터 아는 단어를 제외하고 초기화하면 복원한다", () => {
+  const cards = prepareFlashcards(words, ["day01-a"], null);
+  assert.deepEqual(cards.queue.map((word) => word.id), ["day01-b"]);
+  assert.equal(cards.index, 0);
+  assert.equal(prepareFlashcards(words, words.map((word) => word.id), null).queue.length, 0);
+  const saved = {
+    queue: words, index: 0, flipped: true, answer: null, selected: null,
+    missed: [], score: 0, choices: [], search: "", knownIds: [],
+  };
+  const resumed = prepareFlashcards(words, ["day01-a"], saved);
+  assert.deepEqual(resumed.queue, [words[1]]);
+  assert.equal(resumed.flipped, false);
+  const reset = prepareFlashcards(words, [], { ...saved, queue: [words[1]] });
+  assert.equal(reset.queue.length, 2);
+});
 test("선택한 섹션, 일차, 탭을 복원하고 손상된 값은 기본값으로 돌린다", () => {
   values.clear();
   assert.deepEqual(loadNavigation(), {

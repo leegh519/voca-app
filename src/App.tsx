@@ -6,6 +6,7 @@ import { useEffect, useMemo, useState } from "react";
 import type { Dispatch, SetStateAction } from "react";
 import {
   loadKnownWordIds,
+  prepareFlashcards,
   loadBookmarkedWordIds,
   loadNavigation,
   loadWordListPreferences,
@@ -74,6 +75,7 @@ export default function App() {
   const [saved] = useState(readSaved);
   const [progress, setProgress] = useState<Progress>(saved.progress);
   const [userContent, setUserContent] = useState<UserContent>({ extra, grammar });
+  const [studyRevision, setStudyRevision] = useState(0);
   function handleSyncReady(signedIn: boolean) {
     const content = signedIn
       ? loadUserContent(textbook, extra, grammar)
@@ -82,6 +84,7 @@ export default function App() {
     setUserContent(content);
     setKnownIds(loadKnownWordIds(contentWords));
     setBookmarkedIds(loadBookmarkedWordIds(contentWords));
+    setStudyRevision((value) => value + 1);
   }
   const allWords = useMemo(
     () => collectWords(textbook, userContent.extra),
@@ -314,13 +317,14 @@ export default function App() {
                   type="button"
                   className="reset-known"
                   disabled={!selectedWords.some((word) => knownIds.includes(word.id))}
-                  onClick={() =>
+                  onClick={() => {
                     setKnownIds((previous) =>
                       previous.filter(
                         (id) => !selectedWords.some((word) => word.id === id),
                       ),
-                    )
-                  }
+                    );
+                    setStudyRevision((value) => value + 1);
+                  }}
                 >
                   아는 단어 초기화
                 </button>
@@ -380,7 +384,7 @@ export default function App() {
               </div>
             ) : (
               <Study
-                key={`${scope}-${day}-${mode}-${showRelated}-${words.map((word) => word.id).join(",")}`}
+                key={`${studyRevision}-${scope}-${day}-${mode}-${showRelated}-${words.map((word) => word.id).join(",")}`}
                 words={words}
                 section={scope}
                 day={day}
@@ -431,9 +435,10 @@ function Study({
   const [initial] = useState(() =>
     loadWordSession(wordSessionKey(section, day, mode), words, mode),
   );
+  const [cards] = useState(() => prepareFlashcards(words, knownIds, initial));
   const [queue, setQueue] = useState(
     () =>
-      initial?.queue ??
+      (mode === "cards" ? cards.queue : initial?.queue) ??
       (mode === "cards" || mode === "list"
         ? words
         : shuffle(
@@ -442,8 +447,8 @@ function Study({
               : words,
           )),
   );
-  const [index, setIndex] = useState(initial?.index ?? 0);
-  const [flipped, setFlipped] = useState(initial?.flipped ?? false);
+  const [index, setIndex] = useState(mode === "cards" ? cards.index : initial?.index ?? 0);
+  const [flipped, setFlipped] = useState(mode === "cards" ? cards.flipped : initial?.flipped ?? false);
   const [answer, setAnswer] = useState<boolean | null>(initial?.answer ?? null);
   const [selected, setSelected] = useState<string | null>(
     initial?.selected ?? null,
@@ -454,10 +459,6 @@ function Study({
     () => initial?.choices ?? (queue[0] ? meaningChoices(queue[0], words) : []),
   );
   const [search, setSearch] = useState(initial?.search ?? "");
-  useEffect(() => {
-    if (!initial?.knownIds.length) return;
-    setKnownIds((previous) => [...new Set([...previous, ...initial.knownIds])]);
-  }, [initial, setKnownIds]);
   const knownWords = new Set(knownIds);
   const bookmarkedWords = new Set(bookmarkedIds);
   const sessionKey = wordSessionKey(section, day, mode);
