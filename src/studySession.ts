@@ -159,19 +159,55 @@ export function prepareFlashcards(
   knownIds: string[],
   saved: WordSession | null,
 ) {
+  return prepareWordStudy(source, knownIds, saved, "cards");
+}
+export function prepareWordStudy(
+  source: StudyWord[],
+  knownIds: string[],
+  saved: WordSession | null,
+  mode: Exclude<Mode, "list">,
+) {
   const known = new Set(knownIds);
-  const previous = saved?.queue ?? source;
+  const eligible = source.filter(
+    (word) =>
+      !known.has(word.id) &&
+      (mode !== "example" || Boolean(word.example?.trim())),
+  );
+  const eligibleIds = new Set(eligible.map((word) => word.id));
+  const savedKnown = new Set(saved?.knownIds ?? []);
+  const knownChanged = Boolean(
+    saved &&
+      (savedKnown.size !== known.size ||
+        knownIds.some((id) => !savedKnown.has(id))),
+  );
+  const quizNeedsRestart = Boolean(
+    saved &&
+      mode !== "cards" &&
+      (knownChanged || saved.queue.some((word) => !eligibleIds.has(word.id))),
+  );
+  const previous = quizNeedsRestart ? eligible : saved?.queue ?? eligible;
   const previousIds = new Set(previous.map((word) => word.id));
   const queue = [
-    ...previous,
-    ...source.filter((word) => !previousIds.has(word.id)),
-  ].filter((word) => !known.has(word.id));
-  const nextId = previous.slice(saved?.index ?? 0).find((word) => !known.has(word.id))?.id;
+    ...previous.filter((word) => eligibleIds.has(word.id)),
+    ...(mode === "cards"
+      ? eligible.filter((word) => !previousIds.has(word.id))
+      : []),
+  ];
+  const nextId = previous
+    .slice(saved?.index ?? 0)
+    .find((word) => eligibleIds.has(word.id))?.id;
   const index = Math.max(0, queue.findIndex((word) => word.id === nextId));
   const flipped = saved?.queue[saved.index]?.id === queue[index]?.id
     ? saved?.flipped ?? false
     : false;
-  return { queue, index, flipped };
+  const changed = Boolean(
+    quizNeedsRestart ||
+      (saved &&
+      (saved.index !== index ||
+        saved.queue.length !== queue.length ||
+          saved.queue.some((word, position) => word.id !== queue[position]?.id))),
+  );
+  return { queue, index, flipped, changed };
 }
 export function wordSessionKey(
   section: Exclude<Section, "grammar">,
@@ -212,10 +248,7 @@ export function loadWordSession(
     (saved.knownIds !== undefined &&
       (!Array.isArray(saved.knownIds) ||
         !saved.knownIds.every((id) => typeof id === "string") ||
-        new Set(saved.knownIds).size !== saved.knownIds.length ||
-        !saved.knownIds.every((id) =>
-          source.some((word) => word.id === id),
-        )))
+        new Set(saved.knownIds).size !== saved.knownIds.length))
   )
     return null;
   if (mode === "cards" && queue.some((word) => !source.includes(word))) return null;

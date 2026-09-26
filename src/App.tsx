@@ -7,6 +7,7 @@ import type { Dispatch, SetStateAction } from "react";
 import {
   loadKnownWordIds,
   prepareFlashcards,
+  prepareWordStudy,
   loadBookmarkedWordIds,
   loadNavigation,
   loadWordListPreferences,
@@ -436,27 +437,50 @@ function Study({
     loadWordSession(wordSessionKey(section, day, mode), words, mode),
   );
   const [cards] = useState(() => prepareFlashcards(words, knownIds, initial));
+  const [study] = useState(() =>
+    mode === "meaning" || mode === "example"
+      ? prepareWordStudy(words, knownIds, initial, mode)
+      : null,
+  );
+  const availableWords =
+    mode === "example"
+      ? words.filter((word) => word.example?.trim())
+      : words;
+  const eligibleWords = availableWords.filter(
+    (word) => !knownIds.includes(word.id),
+  );
   const [queue, setQueue] = useState(
     () =>
-      (mode === "cards" ? cards.queue : initial?.queue) ??
-      (mode === "cards" || mode === "list"
-        ? words
-        : shuffle(
-            mode === "example"
-              ? words.filter((word) => word.example?.trim())
-              : words,
-          )),
+      mode === "cards"
+        ? cards.queue
+        : mode === "list"
+          ? initial?.queue ?? words
+          : initial && !study?.changed
+            ? study?.queue ?? []
+            : shuffle(study?.queue ?? []),
   );
-  const [index, setIndex] = useState(mode === "cards" ? cards.index : initial?.index ?? 0);
+  const [index, setIndex] = useState(
+    mode === "cards" ? cards.index : study?.index ?? initial?.index ?? 0,
+  );
   const [flipped, setFlipped] = useState(mode === "cards" ? cards.flipped : initial?.flipped ?? false);
-  const [answer, setAnswer] = useState<boolean | null>(initial?.answer ?? null);
-  const [selected, setSelected] = useState<string | null>(
-    initial?.selected ?? null,
+  const restoreQuizState = !study?.changed;
+  const [answer, setAnswer] = useState<boolean | null>(
+    restoreQuizState ? initial?.answer ?? null : null,
   );
-  const [missed, setMissed] = useState<StudyWord[]>(initial?.missed ?? []);
-  const [score, setScore] = useState(initial?.score ?? 0);
+  const [selected, setSelected] = useState<string | null>(
+    restoreQuizState ? initial?.selected ?? null : null,
+  );
+  const [missed, setMissed] = useState<StudyWord[]>(
+    restoreQuizState ? initial?.missed ?? [] : [],
+  );
+  const [score, setScore] = useState(restoreQuizState ? initial?.score ?? 0 : 0);
   const [choices, setChoices] = useState(
-    () => initial?.choices ?? (queue[0] ? meaningChoices(queue[0], words) : []),
+    () =>
+      restoreQuizState && initial?.choices
+        ? initial.choices
+        : queue[0]
+          ? meaningChoices(queue[0], eligibleWords)
+          : [],
   );
   const [search, setSearch] = useState(initial?.search ?? "");
   const knownWords = new Set(knownIds);
@@ -501,7 +525,7 @@ function Study({
     setSelected(null);
     setMissed([]);
     setScore(0);
-    setChoices(next[0] ? meaningChoices(next[0], words) : []);
+    setChoices(next[0] ? meaningChoices(next[0], eligibleWords) : []);
   }
   function submit(correct: boolean, choice?: string) {
     if (answer !== null) return;
@@ -516,7 +540,11 @@ function Study({
     setFlipped(false);
     setAnswer(null);
     setSelected(null);
-    setChoices(queue[index + 1] ? meaningChoices(queue[index + 1], words) : []);
+    setChoices(
+      queue[index + 1]
+        ? meaningChoices(queue[index + 1], eligibleWords)
+        : [],
+    );
   }
   function toggleKnown() {
     setKnownIds((previous) =>
@@ -628,6 +656,31 @@ function Study({
         </div>
       </div>
     );
+  if (!queue.length && eligibleWords.length === 0 && availableWords.length > 0)
+    return (
+      <div className="result">
+        <span className="eyebrow">STUDY COMPLETE</span>
+        <h3>학습할 단어를 모두 아는 단어로 표시했어요.</h3>
+        <p className="muted">표시를 초기화하면 전체 단어를 다시 풀 수 있어요.</p>
+        <div className="actions">
+          <button
+            className="primary"
+            onClick={() => {
+              setKnownIds((previous) =>
+                previous.filter((id) => !words.some((word) => word.id === id)),
+              );
+              restart(
+                mode === "example"
+                  ? words.filter((word) => word.example?.trim())
+                  : words,
+              );
+            }}
+          >
+            아는 단어 표시 초기화
+          </button>
+        </div>
+      </div>
+    );
   if (!queue.length)
     return (
       <div className="empty">
@@ -659,8 +712,8 @@ function Study({
             onClick={() =>
               restart(
                 mode === "example"
-                  ? words.filter((word) => word.example?.trim())
-                  : words,
+                  ? eligibleWords.filter((word) => word.example?.trim())
+                  : eligibleWords,
               )
             }
           >

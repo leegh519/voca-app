@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import {
   loadNavigation,
   prepareFlashcards,
+  prepareWordStudy,
   loadKnownWordIds,
   loadBookmarkedWordIds,
   loadWordListPreferences,
@@ -65,6 +66,21 @@ test("플래시카드는 처음부터 아는 단어를 제외하고 초기화하
   assert.equal(resumed.flipped, false);
   const reset = prepareFlashcards(words, [], { ...saved, queue: [words[1]] });
   assert.equal(reset.queue.length, 2);
+});
+test("단어 뜻과 예문 퀴즈에서도 아는 단어를 제외한다", () => {
+  const quizWords: StudyWord[] = [
+    { ...words[0], example: "An apple fell.", exampleMeaning: "사과가 떨어졌다." },
+    words[1],
+  ];
+  const saved = {
+    queue: quizWords, index: 0, flipped: false, answer: true, selected: "사과",
+    missed: [], score: 1, choices: ["사과", "책"], search: "", knownIds: ["day01-a"],
+  };
+  const meaning = prepareWordStudy(quizWords, ["day01-a"], saved, "meaning");
+  assert.deepEqual(meaning.queue.map((word) => word.id), ["day01-b"]);
+  assert.equal(meaning.changed, true);
+  const example = prepareWordStudy(quizWords, [], null, "example");
+  assert.deepEqual(example.queue.map((word) => word.id), ["day01-a"]);
 });
 test("선택한 섹션, 일차, 탭을 복원하고 손상된 값은 기본값으로 돌린다", () => {
   values.clear();
