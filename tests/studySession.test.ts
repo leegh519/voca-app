@@ -119,16 +119,33 @@ test("단어 목록의 연관 단어 표시 설정을 계속 유지한다", () =
     showRelated: false,
   });
 });
-test("아는 단어 표시는 모든 단어장 세션에서 공유한다", () => {
+test("아는 단어 표시는 단어장, 추가 단어, 북마크에서 따로 저장한다", () => {
   values.clear();
-  saveKnownWordIds(["day01-b"]);
-  assert.deepEqual(loadKnownWordIds(words), ["day01-b"]);
-  assert.deepEqual(loadKnownWordIds([words[0]]), []);
+  saveKnownWordIds({
+    textbook: ["day01-b"],
+    extra: [],
+    bookmarks: ["day01-a"],
+  });
+  assert.deepEqual(loadKnownWordIds(words), {
+    textbook: ["day01-b"],
+    extra: [],
+    bookmarks: ["day01-a"],
+  });
+  assert.deepEqual(loadKnownWordIds([words[0]]), {
+    textbook: [],
+    extra: [],
+    bookmarks: ["day01-a"],
+  });
+  values.delete("voca-app.known-word-ids.v2");
   values.set(
     "voca-app.known-word-ids.v1",
-    '["day01-b", "day01-b"]',
+    '["day01-b"]',
   );
-  assert.deepEqual(loadKnownWordIds(words), []);
+  assert.deepEqual(loadKnownWordIds(words), {
+    textbook: ["day01-b"],
+    extra: [],
+    bookmarks: [],
+  });
 });
 test("북마크 단어는 유효한 단어 ID만 유지한다", () => {
   values.clear();

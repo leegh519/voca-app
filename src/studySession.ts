@@ -4,6 +4,8 @@ import { notifyStudyStateChanged } from "./localStudyState.ts";
 
 export type Mode = "cards" | "meaning" | "example" | "list";
 export type Section = "textbook" | "extra" | "bookmarks" | "grammar";
+export type KnownWordScope = Exclude<Section, "grammar">;
+export type KnownWordIdsByScope = Record<KnownWordScope, string[]>;
 
 export type Navigation = { section: Section; day: number; mode: Mode };
 export type WordListPreferences = {
@@ -31,7 +33,8 @@ export type GrammarSession = {
 
 const NAVIGATION_KEY = "voca-app.navigation.v1";
 const WORD_LIST_PREFERENCES_KEY = "voca-app.word-list-preferences.v1";
-const KNOWN_WORD_IDS_KEY = "voca-app.known-word-ids.v1";
+const LEGACY_KNOWN_WORD_IDS_KEY = "voca-app.known-word-ids.v1";
+const KNOWN_WORD_IDS_KEY = "voca-app.known-word-ids.v2";
 const BOOKMARKED_WORD_IDS_KEY = "voca-app.bookmarked-word-ids.v1";
 const WORD_SESSION_PREFIX = "voca-app.word-session.v1:";
 const GRAMMAR_SESSION_KEY = "voca-app.grammar-session.v1";
@@ -126,18 +129,36 @@ export function loadWordListPreferences(): WordListPreferences {
 export function saveWordListPreferences(value: WordListPreferences) {
   write(WORD_LIST_PREFERENCES_KEY, value);
 }
-export function loadKnownWordIds(source: StudyWord[]): string[] {
-  const saved = read(KNOWN_WORD_IDS_KEY);
+function validIds(value: unknown, sourceIds: Set<string>): string[] | null {
   if (
-    !Array.isArray(saved) ||
-    !saved.every((id) => typeof id === "string") ||
-    new Set(saved).size !== saved.length
+    !Array.isArray(value) ||
+    !value.every((id) => typeof id === "string") ||
+    new Set(value).size !== value.length
   )
-    return [];
-  const sourceIds = new Set(source.map((word) => word.id));
-  return saved.filter((id) => sourceIds.has(id));
+    return null;
+  return value.filter((id) => sourceIds.has(id));
 }
-export function saveKnownWordIds(ids: string[]) {
+export function loadKnownWordIds(source: StudyWord[]): KnownWordIdsByScope {
+  const sourceIds = new Set(source.map((word) => word.id));
+  const saved = read(KNOWN_WORD_IDS_KEY);
+  if (object(saved)) {
+    const textbook = validIds(saved.textbook, sourceIds);
+    const extra = validIds(saved.extra, sourceIds);
+    const bookmarks = validIds(saved.bookmarks, sourceIds);
+    if (textbook && extra && bookmarks) return { textbook, extra, bookmarks };
+  }
+  const legacy = validIds(read(LEGACY_KNOWN_WORD_IDS_KEY), sourceIds) ?? [];
+  return {
+    textbook: legacy.filter(
+      (id) => source.find((word) => word.id === id)?.group === "textbook",
+    ),
+    extra: legacy.filter(
+      (id) => source.find((word) => word.id === id)?.group === "extra",
+    ),
+    bookmarks: [],
+  };
+}
+export function saveKnownWordIds(ids: KnownWordIdsByScope) {
   write(KNOWN_WORD_IDS_KEY, ids);
 }
 export function loadBookmarkedWordIds(source: StudyWord[]): string[] {

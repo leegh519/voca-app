@@ -19,7 +19,7 @@ import {
   saveWordSession,
   wordSessionKey,
 } from "./studySession";
-import type { Mode, Section } from "./studySession";
+import type { KnownWordIdsByScope, Mode, Section } from "./studySession";
 import textbook from "../data/textbook.json";
 import extra from "../data/extra.json";
 import grammar from "../data/grammar.json";
@@ -83,7 +83,7 @@ export default function App() {
       : { extra, grammar };
     const contentWords = collectWords(textbook, content.extra);
     setUserContent(content);
-    setKnownIds(loadKnownWordIds(contentWords));
+    setKnownIdsByScope(loadKnownWordIds(contentWords));
     setBookmarkedIds(loadBookmarkedWordIds(contentWords));
     setStudyRevision((value) => value + 1);
   }
@@ -91,8 +91,9 @@ export default function App() {
     () => collectWords(textbook, userContent.extra),
     [userContent.extra],
   );
-  const [knownIds, setKnownIds] = useState(() => loadKnownWordIds(allWords));
-  useEffect(() => saveKnownWordIds(knownIds), [knownIds]);
+  const [knownIdsByScope, setKnownIdsByScope] =
+    useState<KnownWordIdsByScope>(() => loadKnownWordIds(allWords));
+  useEffect(() => saveKnownWordIds(knownIdsByScope), [knownIdsByScope]);
   const [bookmarkedIds, setBookmarkedIds] = useState(() =>
     loadBookmarkedWordIds(allWords),
   );
@@ -120,6 +121,13 @@ export default function App() {
         : selectedWords.filter((word) => !isRelatedWord(word)),
     [selectedWords, showRelated],
   );
+  const knownIds = knownIdsByScope[scope];
+  const setKnownIds: Dispatch<SetStateAction<string[]>> = (update) =>
+    setKnownIdsByScope((previous) => ({
+      ...previous,
+      [scope]:
+        typeof update === "function" ? update(previous[scope]) : update,
+    }));
   const label = isGrammar
     ? "문법 O/X"
     : scope === "textbook"
@@ -313,23 +321,21 @@ export default function App() {
               >
                 연관단어
               </button>
-              {scope === "textbook" && (
-                <button
-                  type="button"
-                  className="reset-known"
-                  disabled={!selectedWords.some((word) => knownIds.includes(word.id))}
-                  onClick={() => {
-                    setKnownIds((previous) =>
-                      previous.filter(
-                        (id) => !selectedWords.some((word) => word.id === id),
-                      ),
-                    );
-                    setStudyRevision((value) => value + 1);
-                  }}
-                >
-                  아는 단어 초기화
-                </button>
-              )}
+              <button
+                type="button"
+                className="reset-known"
+                disabled={!selectedWords.some((word) => knownIds.includes(word.id))}
+                onClick={() => {
+                  setKnownIds((previous) =>
+                    previous.filter(
+                      (id) => !selectedWords.some((word) => word.id === id),
+                    ),
+                  );
+                  setStudyRevision((value) => value + 1);
+                }}
+              >
+                아는 단어 초기화
+              </button>
             </div>
             <div className="mode-nav" role="tablist" aria-label="학습 방식">
               {modes.map((item) => (
