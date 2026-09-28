@@ -490,6 +490,7 @@ function Study({
   );
   const [search, setSearch] = useState(initial?.search ?? "");
   const knownWords = new Set(knownIds);
+  const currentKnownCount = words.filter((word) => knownWords.has(word.id)).length;
   const bookmarkedWords = new Set(bookmarkedIds);
   const sessionKey = wordSessionKey(section, day, mode);
   useEffect(
@@ -735,7 +736,7 @@ function Study({
       <div className="session-heading">
         <p>
           {mode === "cards"
-            ? `먼저 뜻을 떠올린 뒤 카드를 뒤집어 보세요. 아는 단어 ${knownIds.length}개`
+            ? `먼저 뜻을 떠올린 뒤 카드를 뒤집어 보세요. 아는 단어 ${currentKnownCount}개`
             : mode === "meaning"
               ? choices.length > 1
                 ? "이 단어에 맞는 뜻을 선택하세요."
@@ -884,7 +885,7 @@ function Study({
               }}
             >
               {index === queue.length - 1
-                ? knownIds.length
+                ? currentKnownCount
                   ? "아는 단어 빼고"
                   : "처음으로 ↻"
                 : "다음 →"}
