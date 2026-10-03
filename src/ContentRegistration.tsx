@@ -1,13 +1,15 @@
 import { useState } from "react";
+import { Plus } from "lucide-react";
 import type { FormEvent } from "react";
 import { supabase } from "./supabase";
 import type { Extra } from "./vocabulary";
 import type { GrammarData } from "./grammar";
 import { validateGrammar } from "./grammar";
 
-export default function ContentRegistration({ kind, signedIn, onAdded }: {
+export default function ContentRegistration({ kind, signedIn, onAdded, compact = false }: {
   kind: "extra" | "grammar";
   signedIn: boolean;
+  compact?: boolean;
   onAdded: (kind: "extra" | "grammar", content: Extra | GrammarData) => void;
 }) {
   const [open, setOpen] = useState(false);
@@ -53,8 +55,8 @@ export default function ContentRegistration({ kind, signedIn, onAdded }: {
     } finally { setBusy(false); }
   }
   return <div className={`content-registration ${open ? "registration-open" : ""}`}>
-    <button type="button" onClick={() => { setOpen(!open); setMessage(""); setError(""); }}>
-      {open ? "등록 닫기" : kind === "extra" ? "+ 추가 단어 등록" : "+ 문법 문제 등록"}
+    <button type="button" aria-label={open ? "등록 닫기" : kind === "extra" ? "추가 단어 등록" : "문법 문제 등록"} onClick={() => { setOpen(!open); setMessage(""); setError(""); }}>
+      {open ? "등록 닫기" : compact ? <><Plus size={16} aria-hidden="true" />등록</> : kind === "extra" ? "+ 추가 단어 등록" : "+ 문법 문제 등록"}
     </button>
     {open && (!signedIn ? <p role="status">로그인하면 내 계정에 직접 등록할 수 있어요.</p> :
       <form className="registration-form" onSubmit={submit}>

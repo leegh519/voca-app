@@ -1252,6 +1252,15 @@ select {
 .registration-form textarea { min-height: 80px; resize: vertical; }
 .registration-form button { justify-self: start; }
 @media (max-width: 700px), (max-width: 950px) and (max-height: 500px) {
+  .desktop-registration { display: none; }
+  .mobile-controls > .content-registration { margin: 0; }
+  .mobile-controls > .content-registration > button {
+    display: flex; align-items: center; gap: 3px; padding: 6px 8px;
+    min-height: 36px; font-size: 12px; white-space: nowrap;
+  }
+  .mobile-controls .registration-form label {
+    display: grid; gap: 6px; font-size: .9rem; white-space: normal;
+  }
   .content-registration { margin: 6px 12px; flex-shrink: 0; }
   .content-registration.registration-open {
     position: fixed; inset: max(12px, env(safe-area-inset-top)) 12px max(12px, env(safe-area-inset-bottom));

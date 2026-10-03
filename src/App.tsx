@@ -234,6 +234,9 @@ export default function App() {
             {words.length}단어 · 학습 {practiced}개
           </span>
         )}
+        {(section === "extra" || section === "grammar") && (
+          <ContentRegistration key={section} compact kind={section} signedIn={signedIn} onAdded={handleContentAdded} />
+        )}
       </div>
       <section className="intro">
         <span className="eyebrow">MY VOCABULARY</span>
@@ -326,7 +329,9 @@ export default function App() {
           )}
         </div>
         {(section === "extra" || section === "grammar") && (
-          <ContentRegistration key={section} kind={section} signedIn={signedIn} onAdded={handleContentAdded} />
+          <div className="desktop-registration">
+            <ContentRegistration key={section} kind={section} signedIn={signedIn} onAdded={handleContentAdded} />
+          </div>
         )}
         {!isGrammar && (
           <>
