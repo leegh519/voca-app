@@ -1240,3 +1240,23 @@ select {
     font-size: 10px;
   }
 }
+
+.content-registration { margin: 16px 28px; }
+.registration-form { margin-top: 14px; }
+.registration-form fieldset { border: 0; padding: 0; margin: 0; display: grid; gap: 12px; min-width: 0; }
+.registration-form label { display: grid; gap: 6px; font-size: .9rem; }
+.registration-form input, .registration-form textarea, .registration-form select {
+  width: 100%; min-width: 0; box-sizing: border-box; border: 1px solid #ccd3df;
+  border-radius: 10px; padding: 10px 12px; font: inherit; color: inherit; background: white;
+}
+.registration-form textarea { min-height: 80px; resize: vertical; }
+.registration-form button { justify-self: start; }
+@media (max-width: 700px), (max-width: 950px) and (max-height: 500px) {
+  .content-registration { margin: 6px 12px; flex-shrink: 0; }
+  .content-registration.registration-open {
+    position: fixed; inset: max(12px, env(safe-area-inset-top)) 12px max(12px, env(safe-area-inset-bottom));
+    margin: 0; padding: 16px; border: 1px solid var(--line); border-radius: 14px;
+    background: white; overflow-y: auto; z-index: 20; box-shadow: 0 0 0 100vmax #0006;
+  }
+  .registration-form input, .registration-form textarea, .registration-form select { font-size: 16px; }
+}

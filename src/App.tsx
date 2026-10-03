@@ -1,6 +1,7 @@
 import PagedText from "./PagedText";
 import GrammarStudy from "./GrammarStudy";
 import CloudSync from "./CloudSync";
+import ContentRegistration from "./ContentRegistration";
 import { Bookmark } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import type { Dispatch, SetStateAction } from "react";
@@ -24,6 +25,7 @@ import textbook from "../data/textbook.json";
 import extra from "../data/extra.json";
 import grammar from "../data/grammar.json";
 import { validateGrammar } from "./grammar";
+import type { GrammarData } from "./grammar";
 import {
   collectWords,
   meaningChoices,
@@ -33,9 +35,9 @@ import {
   isRelatedWord,
   validateData,
 } from "./vocabulary";
-import type { Progress, Scope, StudyWord } from "./vocabulary";
+import type { Extra, Progress, Scope, StudyWord } from "./vocabulary";
 import { notifyStudyStateChanged } from "./localStudyState";
-import { loadUserContent } from "./userContent";
+import { loadUserContent, USER_EXTRA_WORDS_KEY, USER_GRAMMAR_QUESTIONS_KEY } from "./userContent";
 import type { UserContent } from "./userContent";
 
 validateData(textbook, extra);
@@ -77,7 +79,9 @@ export default function App() {
   const [progress, setProgress] = useState<Progress>(saved.progress);
   const [userContent, setUserContent] = useState<UserContent>({ extra, grammar });
   const [studyRevision, setStudyRevision] = useState(0);
+  const [signedIn, setSignedIn] = useState(false);
   function handleSyncReady(signedIn: boolean) {
+    setSignedIn(signedIn);
     const content = signedIn
       ? loadUserContent(textbook, extra, grammar)
       : { extra, grammar };
@@ -86,6 +90,23 @@ export default function App() {
     setKnownIdsByScope(loadKnownWordIds(contentWords));
     setBookmarkedIds(loadBookmarkedWordIds(contentWords));
     setStudyRevision((value) => value + 1);
+  }
+  function handleContentAdded(kind: "extra" | "grammar", content: Extra | GrammarData) {
+    if (kind === "extra") validateData(textbook, content);
+    else validateGrammar(content);
+    setUserContent((previous) => kind === "extra"
+      ? { ...previous, extra: content as Extra }
+      : { ...previous, grammar: content as GrammarData });
+    setStudyRevision((value) => value + 1);
+    try {
+      localStorage.setItem(
+        kind === "extra" ? USER_EXTRA_WORDS_KEY : USER_GRAMMAR_QUESTIONS_KEY,
+        JSON.stringify(content),
+      );
+      notifyStudyStateChanged();
+    } catch {
+      // The server already saved the item; it will be restored on next login.
+    }
   }
   const allWords = useMemo(
     () => collectWords(textbook, userContent.extra),
@@ -304,6 +325,9 @@ export default function App() {
             </div>
           )}
         </div>
+        {(section === "extra" || section === "grammar") && (
+          <ContentRegistration key={section} kind={section} signedIn={signedIn} onAdded={handleContentAdded} />
+        )}
         {!isGrammar && (
           <>
             <div className="word-filters study-filters" aria-label="관련 단어 표시">
@@ -362,7 +386,7 @@ export default function App() {
         )}
         {isGrammar ? (
           <div id="study-panel">
-            <GrammarStudy questions={userContent.grammar.questions} />
+            <GrammarStudy key={studyRevision} questions={userContent.grammar.questions} />
           </div>
         ) : (
           <div id="study-panel" role="tabpanel" aria-labelledby={`tab-${mode}`}>
