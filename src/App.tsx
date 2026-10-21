@@ -212,7 +212,7 @@ export default function App() {
           />
           <div>
             <h1>하루 단어</h1>
-            <p>공무원 영어 · 매일 쌓이는 나의 단어장</p>
+            <p>매일 쌓이는 나의 단어장</p>
           </div>
         </div>
         <span className="total">총 {allWords.length}단어</span>
@@ -390,9 +390,6 @@ export default function App() {
             {scope === "textbook" && filteredWords.length > 0 && (
               <div className="cumulative-progress" role="status">
                 <strong>누적 복습 · 1–{words.length} / {filteredWords.length}단어</strong>
-                <span>{words.length < filteredWords.length
-                  ? `현재 범위를 모두 아는 단어로 체크하면 ${Math.min(round.limit + 20, filteredWords.length)}개로 늘어나고, 앞의 단어도 다시 복습해요.`
-                  : "마지막 단계예요. 앞에서 익힌 단어까지 모두 복습해요."}</span>
                 <button type="button" onClick={() => {
                   setCumulativeStudy((previous) => ({ ...previous, [cumulativeKey]: { limit: 20, knownIds: [] } }));
                   setStudyRevision((value) => value + 1);

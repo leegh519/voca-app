@@ -1275,10 +1275,10 @@ select {
   align-items: center;
   flex-wrap: wrap;
   gap: 6px 12px;
-  padding: 8px 12px;
+  margin-block: 12px;
+  padding: 12px;
   background: #f1f5f0;
   border-radius: 10px;
   font-size: 12px;
 }
-.cumulative-progress span { flex: 1 1 220px; }
 .cumulative-progress button { padding: 5px 8px; font-size: 12px; }
