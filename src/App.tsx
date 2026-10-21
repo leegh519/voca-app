@@ -7,6 +7,10 @@ import { useEffect, useMemo, useState } from "react";
 import type { Dispatch, SetStateAction } from "react";
 import {
   loadKnownWordIds,
+  loadCumulativeStudy,
+  saveCumulativeStudy,
+  cumulativeSourceKey,
+  updateCumulativeRound,
   prepareFlashcards,
   prepareWordStudy,
   loadBookmarkedWordIds,
@@ -89,6 +93,7 @@ export default function App() {
     setUserContent(content);
     setKnownIdsByScope(loadKnownWordIds(contentWords));
     setBookmarkedIds(loadBookmarkedWordIds(contentWords));
+    setCumulativeStudy(loadCumulativeStudy());
     setStudyRevision((value) => value + 1);
   }
   function handleContentAdded(kind: "extra" | "grammar", content: Extra | GrammarData) {
@@ -135,20 +140,36 @@ export default function App() {
         : selectWords(allWords, scope, day),
     [allWords, bookmarkedIds, scope, day],
   );
-  const words = useMemo(
+  const filteredWords = useMemo(
     () =>
       showRelated || scope === "bookmarks"
         ? selectedWords
         : selectedWords.filter((word) => !isRelatedWord(word)),
     [selectedWords, showRelated],
   );
-  const knownIds = knownIdsByScope[scope];
-  const setKnownIds: Dispatch<SetStateAction<string[]>> = (update) =>
-    setKnownIdsByScope((previous) => ({
-      ...previous,
-      [scope]:
-        typeof update === "function" ? update(previous[scope]) : update,
-    }));
+  const [cumulativeStudy, setCumulativeStudy] = useState(loadCumulativeStudy);
+  useEffect(() => saveCumulativeStudy(cumulativeStudy), [cumulativeStudy]);
+  const cumulativeKey = cumulativeSourceKey(day, filteredWords);
+  const round = cumulativeStudy[cumulativeKey] ?? { limit: 20, knownIds: [] };
+  const words = useMemo(
+    () => scope === "textbook" ? filteredWords.slice(0, round.limit) : filteredWords,
+    [scope, filteredWords, round.limit],
+  );
+  const knownIds = scope === "textbook" ? round.knownIds : knownIdsByScope[scope];
+  const setKnownIds: Dispatch<SetStateAction<string[]>> = (update) => {
+    if (scope === "textbook") {
+      setCumulativeStudy((previous) => {
+        const current = previous[cumulativeKey] ?? { limit: 20, knownIds: [] };
+        const ids = typeof update === "function" ? update(current.knownIds) : update;
+        return { ...previous, [cumulativeKey]: updateCumulativeRound(filteredWords, current, ids) };
+      });
+    } else {
+      setKnownIdsByScope((previous) => ({
+        ...previous,
+        [scope]: typeof update === "function" ? update(previous[scope]) : update,
+      }));
+    }
+  };
   const label = isGrammar
     ? "문법 O/X"
     : scope === "textbook"
@@ -366,6 +387,18 @@ export default function App() {
                 아는 단어 초기화
               </button>
             </div>
+            {scope === "textbook" && filteredWords.length > 0 && (
+              <div className="cumulative-progress" role="status">
+                <strong>누적 복습 · 1–{words.length} / {filteredWords.length}단어</strong>
+                <span>{words.length < filteredWords.length
+                  ? `현재 범위를 모두 아는 단어로 체크하면 ${Math.min(round.limit + 20, filteredWords.length)}개로 늘어나고, 앞의 단어도 다시 복습해요.`
+                  : "마지막 단계예요. 앞에서 익힌 단어까지 모두 복습해요."}</span>
+                <button type="button" onClick={() => {
+                  setCumulativeStudy((previous) => ({ ...previous, [cumulativeKey]: { limit: 20, knownIds: [] } }));
+                  setStudyRevision((value) => value + 1);
+                }}>처음 20개부터 다시</button>
+              </div>
+            )}
             <div className="mode-nav" role="tablist" aria-label="학습 방식">
               {modes.map((item) => (
                 <button

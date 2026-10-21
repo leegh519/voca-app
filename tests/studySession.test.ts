@@ -2,6 +2,10 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import {
   loadNavigation,
+  loadCumulativeStudy,
+  saveCumulativeStudy,
+  cumulativeSourceKey,
+  updateCumulativeRound,
   prepareFlashcards,
   prepareWordStudy,
   loadKnownWordIds,
@@ -254,4 +258,36 @@ test("문법 문제 순서, 응답과 점수를 복원하고 바뀐 문제는 �
     loadGrammarSession([{ ...grammar[0], explanation: "새 해설" }, grammar[1]]),
     null,
   );
+});
+
+test("누적 복습은 20→40→60→80→100개로 늘며 이전 단어도 다시 확인한다", () => {
+  const source = Array.from({ length: 100 }, (_, i) => ({ ...words[0], id: `word-${i}` }));
+  let round = { limit: 20, knownIds: [] as string[] };
+  for (const limit of [20, 40, 60, 80]) {
+    const ids = source.slice(0, limit).map((word) => word.id);
+    const partial = updateCumulativeRound(source, round, ids.slice(1));
+    assert.equal(partial.limit, limit);
+    round = updateCumulativeRound(source, partial, ids);
+    assert.equal(round.limit, limit + 20);
+    assert.deepEqual(round.knownIds, []);
+    assert.equal(prepareFlashcards(source.slice(0, round.limit), round.knownIds, null).queue.length, limit + 20);
+  }
+  const complete = updateCumulativeRound(source, round, source.map((word) => word.id));
+  assert.equal(complete.limit, 100);
+  assert.equal(complete.knownIds.length, 100);
+});
+test("누적 복습은 남은 단어가 20개 미만이어도 완료하고 일차별 상태를 복원한다", () => {
+  const source = Array.from({ length: 25 }, (_, i) => ({ ...words[0], id: `word-${i}` }));
+  const expanded = updateCumulativeRound(source, { limit: 20, knownIds: [] }, source.slice(0, 20).map((word) => word.id));
+  assert.equal(source.slice(0, expanded.limit).length, 25);
+  const complete = updateCumulativeRound(source, expanded, source.map((word) => word.id));
+  assert.equal(complete.knownIds.length, 25);
+  assert.equal(updateCumulativeRound([], { limit: 20, knownIds: [] }, []).limit, 20);
+  const key = cumulativeSourceKey(1, source);
+  assert.notEqual(key, cumulativeSourceKey(2, source));
+  assert.notEqual(key, cumulativeSourceKey(1, source.slice(1)));
+  saveCumulativeStudy({ [key]: expanded });
+  assert.deepEqual(loadCumulativeStudy()[key], expanded);
+  values.set("voca-app.cumulative-study.v1", JSON.stringify({ bad: { limit: -20, knownIds: [] } }));
+  assert.deepEqual(loadCumulativeStudy(), {});
 });

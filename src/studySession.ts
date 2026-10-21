@@ -355,3 +355,33 @@ export function saveGrammarSession(
     score: session.score,
   });
 }
+
+export type CumulativeRound = { limit: number; knownIds: string[] };
+export type CumulativeStudy = Record<string, CumulativeRound>;
+const CUMULATIVE_KEY = "voca-app.cumulative-study.v1";
+export function cumulativeSourceKey(day: number, words: StudyWord[]) {
+  return `${day}:${versionOf(words)}`;
+}
+export function loadCumulativeStudy(): CumulativeStudy {
+  const saved = read(CUMULATIVE_KEY);
+  if (!object(saved)) return {};
+  return Object.fromEntries(Object.entries(saved).filter(([, value]) =>
+    object(value) && Number.isInteger(value.limit) && Number(value.limit) >= 20 &&
+    Number(value.limit) % 20 === 0 && Array.isArray(value.knownIds) &&
+    value.knownIds.every((id) => typeof id === "string") &&
+    new Set(value.knownIds).size === value.knownIds.length,
+  )) as CumulativeStudy;
+}
+export function saveCumulativeStudy(value: CumulativeStudy) {
+  write(CUMULATIVE_KEY, value);
+}
+export function updateCumulativeRound(
+  words: StudyWord[], round: CumulativeRound, knownIds: string[],
+): CumulativeRound {
+  const active = words.slice(0, round.limit);
+  const known = new Set(knownIds);
+  if (active.length > 0 && round.limit < words.length && active.every((word) => known.has(word.id))) {
+    return { limit: round.limit + 20, knownIds: [] };
+  }
+  return { limit: round.limit, knownIds: [...new Set(knownIds)].filter((id) => active.some((word) => word.id === id)) };
+}
