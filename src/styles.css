@@ -1282,3 +1282,62 @@ select {
   font-size: 12px;
 }
 .cumulative-progress button { padding: 5px 8px; font-size: 12px; }
+
+/* Give the mobile flashcard the space left after the controls. */
+@media (max-width: 700px), (max-width: 950px) and (max-height: 500px) {
+  .cloud-sync {
+    flex-shrink: 0;
+    margin-top: 0;
+    padding: 4px 10px;
+  }
+  .cloud-sync-summary > div {
+    display: flex;
+    flex: 1;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 2px 8px;
+  }
+  .cloud-sync-summary strong {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 100%;
+  }
+  .cloud-sync-summary button { min-height: 36px; flex-shrink: 0; }
+  .study-filters {
+    flex-shrink: 0;
+    gap: 6px;
+    padding: 6px 10px 0;
+  }
+  .study-filters > span { display: none; }
+  .study-filters button { min-height: 36px; }
+  .cumulative-progress {
+    flex-shrink: 0;
+    justify-content: space-between;
+    margin: 6px 10px;
+    padding: 6px 8px;
+    gap: 4px 8px;
+    font-size: 11px;
+  }
+  .cumulative-progress button { min-height: 36px; }
+  .study-cards .session-heading p { margin: 0; }
+  .study-cards .mobile-card { flex: 1 1 0; }
+  .study-cards .card-actions {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 6px;
+  }
+  .study-cards .card-actions .known-word { grid-column: auto; }
+  .study-cards .card-actions button { padding: 7px 2px; font-size: 12px; }
+}
+@media (min-width: 701px) and (max-width: 950px) and (max-height: 500px) {
+  .mode-cards .workspace:has(.cumulative-progress) {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: auto auto minmax(0, 1fr);
+  }
+  .mode-cards .workspace:has(.cumulative-progress) > .mode-nav,
+  .mode-cards .workspace:has(.cumulative-progress) > #study-panel {
+    grid-column: 1 / -1;
+  }
+  .mode-cards .cumulative-progress { margin-block: 4px; }
+}
