@@ -1335,3 +1335,31 @@ select {
   }
   .mode-cards .cumulative-progress { margin-block: 4px; }
 }
+
+.desktop-card.flipped > strong { font-size: 32px; }
+.desktop-card.flipped > p { font-size: 14px; margin-block: 3px; }
+.desktop-card.flipped > .translation { font-size: 12px; }
+@media (max-width: 700px), (max-width: 950px) and (max-height: 500px) {
+  .card-back-content { width: 100%; }
+  .card-back-text .card-back-meaning,
+  .card-back-text .card-back-detail {
+    display: block;
+    white-space: pre-wrap;
+    font-family: Arial, sans-serif;
+  }
+  .card-back-text .card-back-meaning {
+    font-size: 20px;
+    line-height: 1.45;
+    margin-bottom: 10px;
+  }
+  .card-back-text .card-back-detail {
+    font-size: 15px;
+    line-height: 1.4;
+    margin-bottom: 4px;
+  }
+  .card-back-text .card-back-detail:last-child { margin-bottom: 0; }
+}
+@media (max-width: 950px) and (max-height: 500px) {
+  .study-cards { overflow-y: auto; }
+  .study-cards .mobile-card { min-height: 160px; }
+}

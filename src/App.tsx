@@ -898,6 +898,7 @@ function Study({
             </button>
             <span className="eyebrow">{flipped ? "MEANING" : "WORD"}</span>
             <PagedText
+              cardBack={flipped}
               text={
                 flipped
                   ? [

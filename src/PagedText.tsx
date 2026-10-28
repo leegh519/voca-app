@@ -6,14 +6,30 @@ import { useLayoutEffect, useRef, useState } from "react";
 export default function PagedText({
   text,
   underline,
+  cardBack = false,
 }: {
   text: string;
+  cardBack?: boolean;
   underline?: { start: number; end: number };
 }) {
   const host = useRef<HTMLDivElement>(null);
   const probe = useRef<HTMLDivElement>(null);
   const [pages, setPages] = useState([text]);
   const [page, setPage] = useState(0);
+  function cardRuns(value: string, start: number) {
+    const end = start + value.length;
+    let offset = 0;
+    return text.split("\n\n").flatMap((paragraph, index) => {
+      const paragraphStart = offset;
+      offset += paragraph.length + 2;
+      const from = Math.max(start, paragraphStart);
+      const to = Math.min(end, paragraphStart + paragraph.length);
+      return from < to ? [{
+        text: text.slice(from, to),
+        className: index === 0 ? "card-back-meaning" : "card-back-detail",
+      }] : [];
+    });
+  }
   useLayoutEffect(() => {
     const element = host.current;
     const measure = probe.current;
@@ -31,7 +47,16 @@ export default function PagedText({
           fit = 1;
         while (low <= high) {
           const middle = Math.floor((low + high) / 2);
-          measure.textContent = chars.slice(start, start + middle).join("");
+          const candidate = chars.slice(start, start + middle).join("");
+          if (cardBack) {
+            const offset = chars.slice(0, start).join("").length;
+            measure.replaceChildren(...cardRuns(candidate, offset).map((run) => {
+              const span = document.createElement("span");
+              span.className = run.className;
+              span.textContent = run.text;
+              return span;
+            }));
+          } else measure.textContent = candidate;
           if (measure.getBoundingClientRect().height <= available) {
             fit = middle;
             low = middle + 1;
@@ -56,7 +81,7 @@ export default function PagedText({
     const observer = new ResizeObserver(paginate);
     observer.observe(element);
     return () => observer.disconnect();
-  }, [text]);
+  }, [text, cardBack]);
   const currentPage = Math.min(page, pages.length - 1);
   const offset = pages.slice(0, currentPage).join("").length;
   const parts = underline
@@ -67,9 +92,15 @@ export default function PagedText({
       )
     : null;
   return (
-    <div ref={host} className="paged-text">
+    <div ref={host} className={`paged-text${cardBack ? " card-back-text" : ""}`}>
       <div className="page-copy" aria-live="polite">
-        {parts ? (
+        {cardBack ? (
+          <div className="card-back-content">
+            {cardRuns(pages[currentPage], offset).map((run, index) => (
+              <span key={index} className={run.className}>{run.text}</span>
+            ))}
+          </div>
+        ) : parts ? (
           <>
             {parts[0]}
             {parts[1] && <u className="grammar-underline">{parts[1]}</u>}
