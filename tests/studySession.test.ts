@@ -5,6 +5,7 @@ import {
   loadCumulativeStudy,
   saveCumulativeStudy,
   cumulativeSourceKey,
+  reverseTextbookWords,
   updateCumulativeRound,
   prepareFlashcards,
   prepareWordStudy,
@@ -290,4 +291,19 @@ test("누적 복습은 남은 단어가 20개 미만이어도 완료하고 일�
   assert.deepEqual(loadCumulativeStudy()[key], expanded);
   values.set("voca-app.cumulative-study.v1", JSON.stringify({ bad: { limit: -20, knownIds: [] } }));
   assert.deepEqual(loadCumulativeStudy(), {});
+});
+
+test("하루 단어는 마지막부터 역순으로 20개씩 누적하며 원본과 기존 순서의 기록을 보존한다", () => {
+  const original = Array.from({ length: 100 }, (_, i) => ({ ...words[0], id: `word-${i + 1}` }));
+  const reversed = reverseTextbookWords(original);
+  assert.equal(original[0].id, "word-1");
+  assert.deepEqual(reversed.slice(0, 20).map((word) => word.id),
+    Array.from({ length: 20 }, (_, i) => `word-${100 - i}`));
+  let round = updateCumulativeRound(reversed, { limit: 20, knownIds: [] }, reversed.slice(0, 20).map((word) => word.id));
+  assert.equal(round.limit, 40);
+  assert.equal(reversed.slice(0, round.limit).at(-1)?.id, "word-61");
+  assert.deepEqual(round.knownIds, []);
+  assert.notEqual(cumulativeSourceKey(1, original), cumulativeSourceKey(1, reversed));
+  assert.deepEqual(reverseTextbookWords(original.slice(0, 7)).map((word) => word.id),
+    ["word-7", "word-6", "word-5", "word-4", "word-3", "word-2", "word-1"]);
 });

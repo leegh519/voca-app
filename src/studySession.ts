@@ -359,6 +359,9 @@ export function saveGrammarSession(
 export type CumulativeRound = { limit: number; knownIds: string[] };
 export type CumulativeStudy = Record<string, CumulativeRound>;
 const CUMULATIVE_KEY = "voca-app.cumulative-study.v1";
+export function reverseTextbookWords(words: StudyWord[]) {
+  return [...words].reverse();
+}
 export function cumulativeSourceKey(day: number, words: StudyWord[]) {
   return `${day}:${versionOf(words)}`;
 }

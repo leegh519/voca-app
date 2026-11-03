@@ -10,6 +10,7 @@ import {
   loadCumulativeStudy,
   saveCumulativeStudy,
   cumulativeSourceKey,
+  reverseTextbookWords,
   updateCumulativeRound,
   prepareFlashcards,
   prepareWordStudy,
@@ -147,13 +148,17 @@ export default function App() {
         : selectedWords.filter((word) => !isRelatedWord(word)),
     [selectedWords, showRelated],
   );
+  const orderedWords = useMemo(
+    () => scope === "textbook" ? reverseTextbookWords(filteredWords) : filteredWords,
+    [scope, filteredWords],
+  );
   const [cumulativeStudy, setCumulativeStudy] = useState(loadCumulativeStudy);
   useEffect(() => saveCumulativeStudy(cumulativeStudy), [cumulativeStudy]);
-  const cumulativeKey = cumulativeSourceKey(day, filteredWords);
+  const cumulativeKey = cumulativeSourceKey(day, orderedWords);
   const round = cumulativeStudy[cumulativeKey] ?? { limit: 20, knownIds: [] };
   const words = useMemo(
-    () => scope === "textbook" ? filteredWords.slice(0, round.limit) : filteredWords,
-    [scope, filteredWords, round.limit],
+    () => scope === "textbook" ? orderedWords.slice(0, round.limit) : orderedWords,
+    [scope, orderedWords, round.limit],
   );
   const knownIds = scope === "textbook" ? round.knownIds : knownIdsByScope[scope];
   const setKnownIds: Dispatch<SetStateAction<string[]>> = (update) => {
@@ -161,7 +166,7 @@ export default function App() {
       setCumulativeStudy((previous) => {
         const current = previous[cumulativeKey] ?? { limit: 20, knownIds: [] };
         const ids = typeof update === "function" ? update(current.knownIds) : update;
-        return { ...previous, [cumulativeKey]: updateCumulativeRound(filteredWords, current, ids) };
+        return { ...previous, [cumulativeKey]: updateCumulativeRound(orderedWords, current, ids) };
       });
     } else {
       setKnownIdsByScope((previous) => ({
@@ -389,7 +394,7 @@ export default function App() {
             </div>
             {scope === "textbook" && filteredWords.length > 0 && (
               <div className="cumulative-progress" role="status">
-                <strong>누적 복습 · 1–{words.length} / {filteredWords.length}단어</strong>
+                <strong>누적 복습 · {filteredWords.length}–{filteredWords.length - words.length + 1} / {filteredWords.length}단어</strong>
                 <button type="button" onClick={() => {
                   setCumulativeStudy((previous) => ({ ...previous, [cumulativeKey]: { limit: 20, knownIds: [] } }));
                   setStudyRevision((value) => value + 1);
