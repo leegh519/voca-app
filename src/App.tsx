@@ -54,6 +54,14 @@ const modes: { id: Mode; label: string; icon: string }[] = [
   { id: "example", label: "예문 O/X", icon: "◎" },
   { id: "list", label: "단어 목록", icon: "☷" },
 ];
+function cardNote(note?: string) {
+  if (!note) return "";
+  const parts = note.split(/[,·]/).map((part) => part.trim());
+  return parts.every((part) => /^(명사|대명사|동사|형용사|부사|전치사|접속사|감탄사|관사)$/.test(part))
+    ? ""
+    : note;
+}
+
 function readSaved() {
   try {
     return {
@@ -860,7 +868,7 @@ function Study({
               <>
                 <p lang="en">{current.example}</p>
                 <p className="translation">{current.exampleMeaning}</p>
-                <p className="muted">{current.note}</p>
+                {cardNote(current.note) && <p className="muted">{cardNote(current.note)}</p>}
               </>
             )}
             <small>눌러서 {flipped ? "단어" : "뜻"} 보기 ↻</small>
@@ -910,7 +918,7 @@ function Study({
                       current.meaning,
                       current.example,
                       current.exampleMeaning,
-                      current.note,
+                      cardNote(current.note),
                     ]
                       .filter(Boolean)
                       .join("\n\n")
