@@ -1,3 +1,13 @@
 {
-  "questions": []
+  "questions": [
+    {
+      "id": "grammar-help-bare-infinitive-001",
+      "before": "Regular exercise helps ",
+      "underlined": "reduce",
+      "after": " stress.",
+      "isCorrect": true,
+      "correction": "",
+      "explanation": "help는 3형식에서 (to 없이) 동사원형을 목적어처럼 이어 쓸 수 있습니다. helps reduce와 helps to reduce 모두 가능합니다."
+    }
+  ]
 }
