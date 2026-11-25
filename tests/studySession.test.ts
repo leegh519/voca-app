@@ -261,29 +261,29 @@ test("문법 문제 순서, 응답과 점수를 복원하고 바뀐 문제는 �
   );
 });
 
-test("누적 복습은 20→40→60→80→100개로 늘며 이전 단어도 다시 확인한다", () => {
-  const source = Array.from({ length: 100 }, (_, i) => ({ ...words[0], id: `word-${i}` }));
-  let round = { limit: 20, knownIds: [] as string[] };
-  for (const limit of [20, 40, 60, 80]) {
+test("누적 복습은 40→80→120개로 늘며 이전 단어도 다시 확인한다", () => {
+  const source = Array.from({ length: 120 }, (_, i) => ({ ...words[0], id: `word-${i}` }));
+  let round = { limit: 40, knownIds: [] as string[] };
+  for (const limit of [40, 80]) {
     const ids = source.slice(0, limit).map((word) => word.id);
     const partial = updateCumulativeRound(source, round, ids.slice(1));
     assert.equal(partial.limit, limit);
     round = updateCumulativeRound(source, partial, ids);
-    assert.equal(round.limit, limit + 20);
+    assert.equal(round.limit, limit + 40);
     assert.deepEqual(round.knownIds, []);
-    assert.equal(prepareFlashcards(source.slice(0, round.limit), round.knownIds, null).queue.length, limit + 20);
+    assert.equal(prepareFlashcards(source.slice(0, round.limit), round.knownIds, null).queue.length, limit + 40);
   }
   const complete = updateCumulativeRound(source, round, source.map((word) => word.id));
-  assert.equal(complete.limit, 100);
-  assert.equal(complete.knownIds.length, 100);
+  assert.equal(complete.limit, 120);
+  assert.equal(complete.knownIds.length, 120);
 });
-test("누적 복습은 남은 단어가 20개 미만이어도 완료하고 일차별 상태를 복원한다", () => {
-  const source = Array.from({ length: 25 }, (_, i) => ({ ...words[0], id: `word-${i}` }));
-  const expanded = updateCumulativeRound(source, { limit: 20, knownIds: [] }, source.slice(0, 20).map((word) => word.id));
-  assert.equal(source.slice(0, expanded.limit).length, 25);
+test("누적 복습은 남은 단어가 40개 미만이어도 완료하고 일차별 상태를 복원한다", () => {
+  const source = Array.from({ length: 45 }, (_, i) => ({ ...words[0], id: `word-${i}` }));
+  const expanded = updateCumulativeRound(source, { limit: 40, knownIds: [] }, source.slice(0, 40).map((word) => word.id));
+  assert.equal(source.slice(0, expanded.limit).length, 45);
   const complete = updateCumulativeRound(source, expanded, source.map((word) => word.id));
-  assert.equal(complete.knownIds.length, 25);
-  assert.equal(updateCumulativeRound([], { limit: 20, knownIds: [] }, []).limit, 20);
+  assert.equal(complete.knownIds.length, 45);
+  assert.equal(updateCumulativeRound([], { limit: 40, knownIds: [] }, []).limit, 40);
   const key = cumulativeSourceKey(1, source);
   assert.notEqual(key, cumulativeSourceKey(2, source));
   assert.notEqual(key, cumulativeSourceKey(1, source.slice(1)));
@@ -293,17 +293,28 @@ test("누적 복습은 남은 단어가 20개 미만이어도 완료하고 일�
   assert.deepEqual(loadCumulativeStudy(), {});
 });
 
-test("하루 단어는 마지막부터 역순으로 20개씩 누적하며 원본과 기존 순서의 기록을 보존한다", () => {
+test("하루 단어는 마지막부터 역순으로 40개씩 누적하며 원본과 기존 순서의 기록을 보존한다", () => {
   const original = Array.from({ length: 100 }, (_, i) => ({ ...words[0], id: `word-${i + 1}` }));
   const reversed = reverseTextbookWords(original);
   assert.equal(original[0].id, "word-1");
-  assert.deepEqual(reversed.slice(0, 20).map((word) => word.id),
-    Array.from({ length: 20 }, (_, i) => `word-${100 - i}`));
-  let round = updateCumulativeRound(reversed, { limit: 20, knownIds: [] }, reversed.slice(0, 20).map((word) => word.id));
-  assert.equal(round.limit, 40);
-  assert.equal(reversed.slice(0, round.limit).at(-1)?.id, "word-61");
+  assert.deepEqual(reversed.slice(0, 40).map((word) => word.id),
+    Array.from({ length: 40 }, (_, i) => `word-${100 - i}`));
+  let round = updateCumulativeRound(reversed, { limit: 40, knownIds: [] }, reversed.slice(0, 40).map((word) => word.id));
+  assert.equal(round.limit, 80);
+  assert.equal(reversed.slice(0, round.limit).at(-1)?.id, "word-21");
   assert.deepEqual(round.knownIds, []);
   assert.notEqual(cumulativeSourceKey(1, original), cumulativeSourceKey(1, reversed));
   assert.deepEqual(reverseTextbookWords(original.slice(0, 7)).map((word) => word.id),
     ["word-7", "word-6", "word-5", "word-4", "word-3", "word-2", "word-1"]);
+});
+
+ test("기존 20개 단위 진행은 기록을 유지하며 40개 단위로 올림한다", () => {
+  values.set("voca-app.cumulative-study.v1", JSON.stringify({
+    first: { limit: 20, knownIds: ["word-1"] },
+    later: { limit: 60, knownIds: [] },
+  }));
+  assert.deepEqual(loadCumulativeStudy(), {
+    first: { limit: 40, knownIds: ["word-1"] },
+    later: { limit: 80, knownIds: [] },
+  });
 });

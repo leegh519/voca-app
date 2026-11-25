@@ -6,6 +6,7 @@ import { Bookmark } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import type { Dispatch, SetStateAction } from "react";
 import {
+  CUMULATIVE_BATCH_SIZE,
   loadKnownWordIds,
   loadCumulativeStudy,
   saveCumulativeStudy,
@@ -163,7 +164,7 @@ export default function App() {
   const [cumulativeStudy, setCumulativeStudy] = useState(loadCumulativeStudy);
   useEffect(() => saveCumulativeStudy(cumulativeStudy), [cumulativeStudy]);
   const cumulativeKey = cumulativeSourceKey(day, orderedWords);
-  const round = cumulativeStudy[cumulativeKey] ?? { limit: 20, knownIds: [] };
+  const round = cumulativeStudy[cumulativeKey] ?? { limit: CUMULATIVE_BATCH_SIZE, knownIds: [] };
   const words = useMemo(
     () => scope === "textbook" ? orderedWords.slice(0, round.limit) : orderedWords,
     [scope, orderedWords, round.limit],
@@ -172,7 +173,7 @@ export default function App() {
   const setKnownIds: Dispatch<SetStateAction<string[]>> = (update) => {
     if (scope === "textbook") {
       setCumulativeStudy((previous) => {
-        const current = previous[cumulativeKey] ?? { limit: 20, knownIds: [] };
+        const current = previous[cumulativeKey] ?? { limit: CUMULATIVE_BATCH_SIZE, knownIds: [] };
         const ids = typeof update === "function" ? update(current.knownIds) : update;
         return { ...previous, [cumulativeKey]: updateCumulativeRound(orderedWords, current, ids) };
       });
@@ -404,9 +405,9 @@ export default function App() {
               <div className="cumulative-progress" role="status">
                 <strong>누적 복습 · {filteredWords.length}–{filteredWords.length - words.length + 1} / {filteredWords.length}단어</strong>
                 <button type="button" onClick={() => {
-                  setCumulativeStudy((previous) => ({ ...previous, [cumulativeKey]: { limit: 20, knownIds: [] } }));
+                  setCumulativeStudy((previous) => ({ ...previous, [cumulativeKey]: { limit: CUMULATIVE_BATCH_SIZE, knownIds: [] } }));
                   setStudyRevision((value) => value + 1);
-                }}>처음 20개부터 다시</button>
+                }}>처음 40개부터 다시</button>
               </div>
             )}
             <div className="mode-nav" role="tablist" aria-label="학습 방식">
